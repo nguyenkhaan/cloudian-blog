@@ -1,0 +1,12 @@
+{
+    "name": "blog-api",
+    "main": "index.ts",
+    "compatibility_date": "2026-07-13",
+    "d1_databases": [
+        {
+            "binding": "blogging_database",
+            "database_name": "blogging-database",
+            "database_id": "9327b459-0749-44ee-ad55-b7271993a4f1",
+        },
+    ],
+}

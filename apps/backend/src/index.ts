@@ -56,9 +56,9 @@ app.get(
     '/scalar',
     Scalar((c) => {
         return {
-            url: '/openapi',  //Day chinh la duong link cua cai JSON tren nhe 
+            url: '/openapi', //Day chinh la duong link cua cai JSON tren nhe
             proxyUrl: 'https://proxy.scalar.com',
-            theme: 'purple'
+            theme: 'purple',
         };
     })
 );
