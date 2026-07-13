@@ -1,1 +1,1 @@
-console.log("Hello Cloudian. Your root workspace is running") 
+console.log('Hello Cloudian. Your root workspace is running');

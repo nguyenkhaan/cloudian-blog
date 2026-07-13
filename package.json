@@ -1,19 +1,19 @@
 {
-  "name": "blogging-website",
-  "module": "index.ts",
-  "type": "module",
-  "workspaces": [
-    "apps/*"
-  ],
-  "scripts": {
-    "format": "prettier --write ."
-  },
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest",
-    "prettier": "^3.9.5"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+    "name": "blogging-website",
+    "module": "index.ts",
+    "type": "module",
+    "workspaces": [
+        "apps/*"
+    ],
+    "scripts": {
+        "format": "prettier --write ."
+    },
+    "private": true,
+    "devDependencies": {
+        "@types/bun": "latest",
+        "prettier": "^3.9.5"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    }
 }

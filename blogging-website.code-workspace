@@ -1,11 +1,11 @@
 {
-  "folders": [
-    {
-      "path": ".",
-    },
-    {
-      "path": "apps/backend",
-    },
-  ],
-  "settings": {},
+    "folders": [
+        {
+            "path": ".",
+        },
+        {
+            "path": "apps/backend",
+        },
+    ],
+    "settings": {},
 }
