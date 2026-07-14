@@ -1,8 +1,10 @@
 import { Context, Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { OpenAPIHono } from '@hono/zod-openapi';
 import { describeRoute } from 'hono-openapi';
-const route = new OpenAPIHono();
+import { AppEnv } from '@/types/env';
+import { UserModel } from '@/model/user';
+
+const route = new Hono<AppEnv>();
 
 route.get(
     '/liveness',
@@ -44,4 +46,19 @@ route.get(
     }
 );
 
+route.get(
+    "test-db", 
+    describeRoute({
+        summary: "Test database", 
+        tags: ["Health"], 
+        description: "Just testing database D1 config with drizzle and success"
+    }), 
+    async (c) => {
+        const db = c.get('db') 
+        const user = await db.select().from(UserModel) 
+        console.log("Cac user lay ra duoc la: " , user) 
+        return c.text("Testing successfully") 
+        
+    }
+)
 export default route;

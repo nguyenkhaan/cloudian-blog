@@ -1,7 +1,7 @@
 {
     "name": "backend",
     "scripts": {
-        "dev": "bunx wrangler dev",
+        "dev": "bunx wrangler dev --port 3000",
         "studio": "bunx drizzle-kit studio"
     },
     "dependencies": {

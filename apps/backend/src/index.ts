@@ -35,7 +35,7 @@ app.onError((err, c: Context) => {
 });
 
 //Adding route
-const apiRoute = new Hono();
+const apiRoute = new Hono<AppEnv>();
 apiRoute.route('/health', HealthRoute);
 
 app.get(

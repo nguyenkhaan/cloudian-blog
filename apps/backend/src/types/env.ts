@@ -4,7 +4,7 @@ export type AppEnv = {
     Bindings: {
         blogging_database : D1Database
     }, 
-    Vairables: {
+    Variables: {
         db: ReturnType<typeof createDb>
     }
 }

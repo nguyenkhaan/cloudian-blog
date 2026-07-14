@@ -4,9 +4,9 @@ import { Context } from 'hono';
 import {createMiddleware} from 'hono/factory'
 
 export const databaseMiddleware = createMiddleware<AppEnv>(
-    async (c : Context , next) => {
+    async (c , next) => {
         const db = createDb(c.env.blogging_database) 
         c.set('db' , db) 
-        next() 
+        await next() 
     }
 )

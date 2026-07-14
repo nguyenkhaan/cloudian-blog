@@ -155,13 +155,13 @@ Your database may not be available to serve requests during the migration, conti
 Chung ta se sua doi cau lenh chay du an, cau lenh chay chinh bay gio se la: 
 
 ```bash 
-bunx wrangler dev 
+bunx wrangler dev --port 3000
 ```
 
 ```json 
 // Chinh trong file package.json 
     "scripts": {
-        "dev": "bunx wrangler dev"
+        "dev": "bunx wrangler dev --port 3000"
     },
 ```
 Khi chay thi mot thu muc .wrangler se duoc sinh ra o root, chinh la file sql luu tru cac du lieu cua chung ta. Hay cau hinh drizzle-kit studio de co the doc duoc 
@@ -215,7 +215,7 @@ export type AppEnv = {
     Bindings: {
         blogging_database : D1Database
     }, 
-    Vairables: {
+    Variables: {
         db: ReturnType<typeof createDb>
     }
 }
@@ -257,3 +257,5 @@ Sau nay de su dung thi chung ta chi can:
 ```typescript 
 const db = c.get('db') 
 ```
+
+Bay gio, tat ca moi route deu phai truyen them generic AppEnv va dong thoi khong duoc ghi `async (c : Context)` nua ma chi can ghi `async (c)` thoi de tranh bi ghi de lai kieu du lieu da thiet lap (Kieu D1Database)
