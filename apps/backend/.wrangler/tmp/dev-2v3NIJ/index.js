@@ -13404,10 +13404,10 @@ var init_index_DZEfthgZ = __esm({
   }
 });
 
-// .wrangler/tmp/bundle-u78UfJ/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-qRGKfT/middleware-loader.entry.ts
 init_modules_watch_stub();
 
-// .wrangler/tmp/bundle-u78UfJ/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-qRGKfT/middleware-insertion-facade.js
 init_modules_watch_stub();
 
 // src/index.ts
@@ -21895,19 +21895,23 @@ var SQLiteTransaction = class extends BaseSQLiteDatabase {
 };
 
 // src/model/user.ts
-var UserModel = sqliteTable("user", {
-  id: integer2("id").primaryKey({ autoIncrement: true }),
-  email: text("email").notNull().unique(),
-  name: text("name").notNull(),
-  nickName: text("nickName"),
-  password: text("password").notNull(),
-  active: integer2("active").default(0),
-  approve: integer2("approve").default(0)
-}, (table) => {
-  return {
-    nameIndex: index("name_idx").on(table.name)
-  };
-});
+var UserModel = sqliteTable(
+  "user",
+  {
+    id: integer2("id").primaryKey({ autoIncrement: true }),
+    email: text("email").notNull().unique(),
+    name: text("name").notNull(),
+    nickName: text("nickName"),
+    password: text("password").notNull(),
+    active: integer2("active").default(0),
+    approve: integer2("approve").default(0)
+  },
+  (table) => {
+    return {
+      nameIndex: index("name_idx").on(table.name)
+    };
+  }
+);
 
 // src/controller/health.controller.ts
 var route = new Hono2();
@@ -22458,13 +22462,11 @@ init_modules_watch_stub();
 var createMiddleware = /* @__PURE__ */ __name((middleware) => middleware, "createMiddleware");
 
 // src/middleware/database.middleware.ts
-var databaseMiddleware = createMiddleware(
-  async (c, next) => {
-    const db = createDb(c.env.blogging_database);
-    c.set("db", db);
-    await next();
-  }
-);
+var databaseMiddleware = createMiddleware(async (c, next) => {
+  const db = createDb(c.env.blogging_database);
+  c.set("db", db);
+  await next();
+});
 
 // src/index.ts
 var app = new Hono2();
@@ -22565,7 +22567,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-u78UfJ/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-qRGKfT/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -22598,7 +22600,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-u78UfJ/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-qRGKfT/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

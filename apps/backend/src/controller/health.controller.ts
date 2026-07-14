@@ -47,18 +47,17 @@ route.get(
 );
 
 route.get(
-    "test-db", 
+    'test-db',
     describeRoute({
-        summary: "Test database", 
-        tags: ["Health"], 
-        description: "Just testing database D1 config with drizzle and success"
-    }), 
+        summary: 'Test database',
+        tags: ['Health'],
+        description: 'Just testing database D1 config with drizzle and success',
+    }),
     async (c) => {
-        const db = c.get('db') 
-        const user = await db.select().from(UserModel) 
-        console.log("Cac user lay ra duoc la: " , user) 
-        return c.text("Testing successfully") 
-        
+        const db = c.get('db');
+        const user = await db.select().from(UserModel);
+        console.log('Cac user lay ra duoc la: ', user);
+        return c.text('Testing successfully');
     }
-)
+);
 export default route;
