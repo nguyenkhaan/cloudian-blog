@@ -5,8 +5,10 @@ import { HTTPException } from 'hono/http-exception';
 import HealthRoute from '@/controller/health.controller';
 import { Scalar } from '@scalar/hono-api-reference';
 import { openAPIRouteHandler } from 'hono-openapi';
-
-const app = new Hono();
+import { AppEnv } from './types/env';
+import {databaseMiddleware} from '@/middleware/database.middleware'
+const app = new Hono<AppEnv>();
+app.use('*' , databaseMiddleware)
 app.notFound((c: Context) => {
     return c.text('Cloudian Notification Not Found');
 });
