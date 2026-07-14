@@ -1,8 +1,8 @@
-import { extend } from "zod/mini";
+import { extend } from 'zod/mini';
 import { JWTPayload } from 'hono/utils/jwt/types';
-import { Role } from "@/model/base";
+import { Role } from '@/model/base';
 
 export interface AccessJwtPayload extends JWTPayload {
-    sub: string 
-    roles: Role[], 
+    sub: string | number;
+    roles: Role[];
 }

@@ -186,5 +186,4 @@ To view and manage your local database tables visually, run Drizzle Studio:
 bun --filter backend studio
 ```
 
-
 Build with Cloudian 💙 Cloud - 2026

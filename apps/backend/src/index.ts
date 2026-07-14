@@ -2,11 +2,16 @@
 //https://hono.dev/docs/api/request - Su dung OpenAPI Hono de sinh API document nhe may con vo. Lam nhu the thi no moi nhanh duoc
 import { Context, Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import HealthRoute from '@/controller/health.controller';
+
 import { Scalar } from '@scalar/hono-api-reference';
 import { openAPIRouteHandler } from 'hono-openapi';
 import { AppEnv } from './types/env';
 import { databaseMiddleware } from '@/middleware/database.middleware';
+
+// Importing routes 
+import HealthRoute from '@/controller/health.controller';
+import AuthRoute from '@/controller/auth.controller';
+
 const app = new Hono<AppEnv>();
 app.use('*', databaseMiddleware);
 app.notFound((c: Context) => {
@@ -34,10 +39,6 @@ app.onError((err, c: Context) => {
     );
 });
 
-//Adding route
-const apiRoute = new Hono<AppEnv>();
-apiRoute.route('/health', HealthRoute);
-
 app.get(
     '/openapi',
     openAPIRouteHandler(app, {
@@ -64,6 +65,11 @@ app.get(
         };
     })
 );
+
+//Adding route
+const apiRoute = new Hono<AppEnv>();
+apiRoute.route('/health', HealthRoute);
+apiRoute.route('/auth' , AuthRoute)
 
 app.route('/api', apiRoute);
 export default app;
