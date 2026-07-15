@@ -1,9 +1,9 @@
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
 import { describeRoute } from 'hono-openapi';
-import { login } from '@/service/auth.service'
+import { login, register, verify } from '@/service/auth.service'
 import { zValidator } from '@hono/zod-validator'
-import { LoginDto } from '@/schema/auth.schema'
+import { LoginDto, RegisterDto, VerifyQuery } from '@/schema/auth.schema'
 
 const route = new Hono<AppEnv>();
 const tags = ['Auth'];
@@ -28,4 +28,42 @@ route.post(
     }
 );
 
+route.post('/register' , describeRoute({
+    summary: "Register", 
+    tags, 
+    description: 'Register a new user', 
+}) , 
+    zValidator('json' , RegisterDto), 
+    async (c) => {
+        const data = await c.req.valid('json')
+        const db = await c.get('db') 
+        const verifySecret = c.env.JWT_VERIFY_REGISTER 
+        const response = await register(db , data , verifySecret) 
+        return c.json(response)
+})
+
+route.get('/verify' , describeRoute({
+    summary: "Verify", 
+    tags, 
+    description: "Verify account", 
+    parameters: [
+        {
+            name: 'code', 
+            in: 'query', 
+            required: true, 
+            schema: {
+                type: 'string'
+            }, 
+            
+        }
+    ]
+}) , zValidator('query'   , VerifyQuery) , 
+    async (c) => {
+        const db = await c.get('db') 
+        const verifySecret = c.env.JWT_VERIFY_REGISTER 
+        const data = await c.req.valid('query') 
+        const response = await verify(db , data.code , verifySecret) 
+        return c.text(response)
+    }
+)
 export default route 

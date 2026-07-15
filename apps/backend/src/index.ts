@@ -57,7 +57,7 @@ app.get(
 
 app.get(
     '/scalar',
-    Scalar((c) => {
+    Scalar((c: any) => {
         return {
             url: '/openapi', //Day chinh la duong link cua cai JSON tren nhe
             proxyUrl: 'https://proxy.scalar.com',

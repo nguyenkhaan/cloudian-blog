@@ -6,4 +6,16 @@ export const LoginDto = z.object({
     email: z.string(), 
     password: z.string().min(8) 
 })
+
+export const RegisterDto = z.object({
+    email: z.email(), 
+    password : z.string().min(8), 
+    name: z.string(), 
+    nickName: z.string().optional().default('') 
+}) 
+
+export const VerifyQuery = z.object({
+    code : z.string() 
+})
+export type RegisterDtoType = z.infer<typeof RegisterDto> 
 export type LoginDtoType = z.infer<typeof LoginDto>

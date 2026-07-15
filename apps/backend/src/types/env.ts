@@ -7,6 +7,8 @@ export type AppEnv = {
         blogging_database: D1Database;
         JWT_ACCESS_SECRET: string;
         JWT_REFRESH_SECRET: string;
+        JWT_VERIFY_REGISTER: string; 
+        FE_URL : string 
     };
     Variables: {
         db: ReturnType<typeof createDb>;

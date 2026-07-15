@@ -1,10 +1,14 @@
 import { createDb } from '@/db';
-import { comparePass } from '@/helper/pwd';
+import { comparePass, hashPass } from '@/helper/pwd';
 import { UserModel } from '@/model/user';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { createToken } from './jwt.service';
+import { createToken, verifyToken } from './jwt.service';
 import { TokenType } from '@/base/jwt.enum';
+import { RegisterDtoType } from '@/schema/auth.schema';
+import { ACCESS_TOKEN_LIVETIME, REFRESH_TOKEN_LIVETIME, VERIFY_REGISTER } from '@/base/jwt.constant';
+import { decodeBase64 } from 'bcryptjs';
+import { Role, UserRoleModel } from '@/model';
 
 //_______________HELPER FUNCTION
 
@@ -50,5 +54,120 @@ export async function login(
     } catch (err) {
         console.log('login error: ', err);
         throw err;
+    }
+}
+
+export async function register(
+    db: ReturnType<typeof createDb>, 
+    data : RegisterDtoType, 
+    verifySecret : string, 
+) 
+{
+    try 
+    {
+        const user = await db.query.UserModel.findFirst({
+            where: and(
+                eq(UserModel.email , data.email),  
+                // eq(UserModel.active , 1), 
+            ), 
+            columns: {
+                id : true, 
+                active : true, 
+                approve : true, 
+                email: true
+            }
+        }) 
+        if (user) 
+        {
+            if (user.active) 
+                throw new HTTPException(400 , {
+                    message: "User has been registered" 
+                })
+            else { 
+                const payload = {
+                    sub: user.id.toString(), 
+                    email : user.email, 
+                    exp : Math.floor(Date.now() / 1000) + VERIFY_REGISTER 
+                }
+                const verifyToken = await createToken(TokenType.VERIFY_REGISTER , payload , verifySecret) 
+                return {
+                    user, 
+                    verifyToken 
+                }
+            }
+        }
+        const hashPwd = await hashPass(data.password)
+        const newUser = await db.insert(UserModel).values({
+            email: data.email, 
+            password : hashPwd, 
+            name: data.name, 
+            nickName: data.nickName, 
+            active : 0, 
+            approve : 1
+        }).returning({
+            name: UserModel.name, 
+            nickName : UserModel.nickName, 
+            email: UserModel.email, 
+            id : UserModel.id 
+        })
+        //Sau khiv eirfy tai khoanw thanh cong thi se approve role to the user 
+        const payload = {
+                    sub: newUser[0].id.toString(), 
+                    email : newUser[0].email, 
+                    exp : Math.floor(Date.now() / 1000) + VERIFY_REGISTER 
+                }
+                const verifyToken = await createToken(TokenType.VERIFY_REGISTER , payload , verifySecret) 
+        return {
+            user: newUser[0], 
+            verifyToken
+        }
+    
+    } 
+    catch (err) 
+    {
+        console.log("register error" , err) 
+        throw err 
+    }
+}
+
+export async function verify(db : ReturnType<typeof createDb> , token : string , verifySecret : string) 
+{
+    try 
+    {
+        const payload = await verifyToken(token , verifySecret) 
+        const id = Number(payload.sub)
+        const email = payload.email as string  
+        if (!id || !email) 
+            throw new HTTPException(
+                400, {
+                    message: "Missing credential information"
+                }
+            )
+        const user = await db.query.UserModel.findFirst({
+            where: and(
+                eq(UserModel.id , id), 
+                eq(UserModel.email , email)
+            )
+        })
+        if (!user) 
+            throw new HTTPException(
+                404, {
+                    message: "User not found"
+                }
+            ) 
+        //Neu nguoiu dung da hop le thi tien hanh assign roles cung nhu 
+        await db.update(UserModel).set({
+            active : 1
+        }).where(eq(UserModel.id , id))
+        //Assign roles 
+        await db.insert(UserRoleModel).values({
+            role: Role.USER, 
+            userId : user.id
+        }) 
+        return "User account has been active" 
+    } 
+    catch (err) {
+        console.log("Verify account error", err) 
+        throw err
     }
 }

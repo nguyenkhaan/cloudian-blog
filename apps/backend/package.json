@@ -2,7 +2,8 @@
     "name": "backend",
     "scripts": {
         "dev": "bunx wrangler dev --port 3000",
-        "studio": "bunx drizzle-kit studio"
+        "studio": "bunx drizzle-kit studio",
+        "seed": "bunx tsx src/seed.ts"
     },
     "dependencies": {
         "@hono/standard-validator": "^0.2.3",

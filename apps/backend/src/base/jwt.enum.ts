@@ -3,4 +3,5 @@ export enum TokenType {
     REFRESH_TOKEN = 'refresh_token',
     VERIFY_RESET_PASSWORD = 'verify_reset_password',
     VERIFY_RESET_EMAIL = 'verify_reset_email',
+    VERIFY_REGISTER = 'verify_register'
 }
