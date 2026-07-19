@@ -1,8 +1,8 @@
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
 import { describeRoute, validator } from 'hono-openapi';
-import { changeEmail, changePassword, forgotPassword, login, register, verify, verifyChangeEmail } from '@/service/auth.service'
-import { ChangeEmailDto, ChangePasswordDto, ChangePasswordQuery, ForgotPasswordQuery, LoginDto, RegisterDto, VerifyChangeEmailDto, VerifyQuery } from '@/schema/auth.schema'
+import { changeEmail, changePassword, forgotPassword, login, refresh, register, verify, verifyChangeEmail } from '@/service/auth.service'
+import { ChangeEmailDto, ChangePasswordDto, ChangePasswordQuery, ForgotPasswordQuery, LoginDto, RefreshDto, RegisterDto, VerifyChangeEmailDto, VerifyQuery } from '@/schema/auth.schema'
 import { AuthMiddleware } from '@/middleware/auth.middleware';
 
 const route = new Hono<AppEnv>();
@@ -116,4 +116,19 @@ route.get('/verify-change-email' , describeRoute({
         return c.text(response) 
     }
 )
+
+route.post('/refresh' , describeRoute({
+    summary: 'Refresh session', 
+    tags, 
+    description: 'Get new access token with refresh token'
+}) , validator('json' , RefreshDto) , 
+    async (c) => {
+        const accessKey = c.env.JWT_ACCESS_SECRET 
+        const refreshKey = c.env.JWT_REFRESH_SECRET 
+        const { token } = await c.req.valid('json')
+        const response = await refresh(token , accessKey , refreshKey) 
+        return c.json(response) 
+    }   
+)
+
 export default route 

@@ -286,3 +286,32 @@ export async function verifyChangeEmail(db : ReturnType<typeof createDb>, token 
         throw err 
     }
 }
+
+export async function refresh(token : string , accessSecret: string , refreshSecret : string) 
+{
+    try 
+    {
+        const payload = await verifyToken(token , refreshSecret)
+        if (!payload) 
+            throw new HTTPException(
+                400, {
+                    message: "Login session data is invalid"
+                }
+            ) 
+        const accessToken = await createToken(
+            TokenType.ACCESS_TOKEN, 
+            {
+                ...payload, 
+                exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_LIVETIME 
+            }, 
+            accessSecret
+        )
+        return {
+            accessToken
+        }
+    } 
+    catch (err) {
+        console.log("Get access token error: " , err) 
+        throw err 
+    }
+}

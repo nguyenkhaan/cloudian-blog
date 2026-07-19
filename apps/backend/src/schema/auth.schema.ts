@@ -53,6 +53,10 @@ export const VerifyChangeEmailDto = z.object({
         example: "abcxyz..."
     })
 })
+
+export const RefreshDto = z.object({
+    token : z.string() 
+})
 export type ChangeEmailType = z.infer<typeof ChangeEmailDto>
 export type ChangePasswordType = z.infer<typeof ChangePasswordDto>
 export type RegisterDtoType = z.infer<typeof RegisterDto> 
