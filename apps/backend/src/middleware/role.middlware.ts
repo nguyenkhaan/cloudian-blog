@@ -3,7 +3,7 @@ import { AppEnv } from '@/types/env';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 
-export const requireRole = (roles: Role[]) => {
+export const requireRole = (...roles: Role[]) => {
     const roleMiddleware = createMiddleware<AppEnv>(async (c, next) => {
         const user = c.get('user');
         const userRoles = user.roles ?? [];

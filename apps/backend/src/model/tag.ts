@@ -1,11 +1,11 @@
-import { index, integer, sqliteTable } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable , text} from 'drizzle-orm/sqlite-core';
 import { PostModel } from './post';
 
 export const TagModel = sqliteTable(
     'tag',
     {
         id: integer('id').primaryKey({ autoIncrement: true }),
-        name: integer('id').notNull(),
+        name: text('name').notNull(),
         slug: integer('slug'),
     },
     (table) => {

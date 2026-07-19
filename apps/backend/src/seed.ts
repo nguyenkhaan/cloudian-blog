@@ -1,6 +1,7 @@
 import { hash } from 'bcryptjs';
 import * as path from 'path';
 import drizzleConfig from '../drizzle.config';
+import { hashPass } from './helper/pwd';
 
 async function main() {
   try {
@@ -22,7 +23,7 @@ async function main() {
       const insertRole = db.prepare('INSERT INTO user_role (user_id, role) VALUES (?, ?)');
 
       // Seed Admin
-      const adminPassword = await hash('Admin123!', 12);
+      const adminPassword = await hashPass('Admin123!');
       insertUser.run('admin@gmail.com', 'Admin', 'admin', adminPassword, 1, 1);
       const adminRow = getUser.get('admin@gmail.com') as { id: number } | undefined;
       if (adminRow) {
@@ -33,7 +34,7 @@ async function main() {
       }
 
       // Seed User
-      const userPassword = await hash('User123!', 12);
+      const userPassword = await hashPass('User123!');
       insertUser.run('user@gmail.com', 'Normal User', 'user', userPassword, 1, 1);
       const userRow = getUser.get('user@gmail.com') as { id: number } | undefined;
       if (userRow) {

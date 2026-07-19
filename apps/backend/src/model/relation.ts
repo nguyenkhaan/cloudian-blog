@@ -23,7 +23,7 @@ export const UserRoleRelations = relations(UserRoleModel, ({ one, many }) => {
 
 export const PostRelations = relations(PostModel, ({ one, many }) => {
     return {
-        user: one(UserModel, {
+        author: one(UserModel, {
             fields: [PostModel.authorId],
             references: [UserModel.id],
         }),
