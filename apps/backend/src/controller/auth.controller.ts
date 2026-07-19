@@ -1,9 +1,8 @@
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
-import { describeRoute } from 'hono-openapi';
-import { login, register, verify } from '@/service/auth.service'
-import { zValidator } from '@hono/zod-validator'
-import { LoginDto, RegisterDto, VerifyQuery } from '@/schema/auth.schema'
+import { describeRoute, validator } from 'hono-openapi';
+import { changePassword, forgotPassword, login, register, verify } from '@/service/auth.service'
+import { ChangePasswordDto, ChangePasswordQuery, ForgotPasswordQuery, LoginDto, RegisterDto, VerifyQuery } from '@/schema/auth.schema'
 
 const route = new Hono<AppEnv>();
 const tags = ['Auth'];
@@ -13,9 +12,9 @@ route.post(
     describeRoute({
         summary: 'Login',
         tags,
-        description: 'Login account',
+        description: 'Login account'
     }),
-    zValidator('json' , LoginDto), 
+    validator('json' , LoginDto), 
     async (c) => {
         const db = await c.get('db');
         const accessSecret = c.env.JWT_ACCESS_SECRET;
@@ -31,9 +30,9 @@ route.post(
 route.post('/register' , describeRoute({
     summary: "Register", 
     tags, 
-    description: 'Register a new user', 
+    description: 'Register a new user' 
 }) , 
-    zValidator('json' , RegisterDto), 
+    validator('json' , RegisterDto), 
     async (c) => {
         const data = await c.req.valid('json')
         const db = await c.get('db') 
@@ -46,24 +45,42 @@ route.get('/verify' , describeRoute({
     summary: "Verify", 
     tags, 
     description: "Verify account", 
-    parameters: [
-        {
-            name: 'code', 
-            in: 'query', 
-            required: true, 
-            schema: {
-                type: 'string'
-            }, 
-            
-        }
-    ]
-}) , zValidator('query'   , VerifyQuery) , 
+}) , validator('query'   , VerifyQuery) , 
     async (c) => {
         const db = await c.get('db') 
         const verifySecret = c.env.JWT_VERIFY_REGISTER 
         const data = await c.req.valid('query') 
         const response = await verify(db , data.code , verifySecret) 
         return c.text(response)
+    }
+)
+
+route.get('/forgot-password' , describeRoute({
+    summary: 'Forgot password', 
+    tags, 
+    description: 'Get a rescue password token'
+}) , 
+    validator('query' , ForgotPasswordQuery), 
+    async (c) => {
+        const {email} = await c.req.valid('query') 
+        const db = await c.get('db')
+        const secretKey = c.env.JWT_VERIFY_RESET_PASSWORD
+        const response = await forgotPassword(db , email , secretKey) 
+        return c.json(response) 
+})
+route.post('/change-password' , describeRoute({
+    summary: 'Chang password', 
+    tags
+}) ,
+    validator('query' , ChangePasswordQuery),
+    validator('json' , ChangePasswordDto), 
+    async (c) => {
+        const db = await c.get('db') 
+        const { token } = await  c.req.valid('query') 
+        const data = await c.req.valid('json') 
+        const secretKey = c.env.JWT_VERIFY_RESET_PASSWORD
+        const response = await changePassword(db , token , secretKey , data) 
+        return c.text(response) 
     }
 )
 export default route 

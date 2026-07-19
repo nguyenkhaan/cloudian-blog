@@ -8,7 +8,8 @@ export type AppEnv = {
         JWT_ACCESS_SECRET: string;
         JWT_REFRESH_SECRET: string;
         JWT_VERIFY_REGISTER: string; 
-        FE_URL : string 
+        FE_URL : string; 
+        JWT_VERIFY_RESET_PASSWORD : string; 
     };
     Variables: {
         db: ReturnType<typeof createDb>;

@@ -5,8 +5,8 @@ import { and, eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { createToken, verifyToken } from './jwt.service';
 import { TokenType } from '@/base/jwt.enum';
-import { RegisterDtoType } from '@/schema/auth.schema';
-import { ACCESS_TOKEN_LIVETIME, REFRESH_TOKEN_LIVETIME, VERIFY_REGISTER } from '@/base/jwt.constant';
+import { ChangePasswordType, RegisterDtoType } from '@/schema/auth.schema';
+import { ACCESS_TOKEN_LIVETIME, REFRESH_TOKEN_LIVETIME, VERIFY_REGISTER, VERIFY_RESET_PASSWORD } from '@/base/jwt.constant';
 import { decodeBase64 } from 'bcryptjs';
 import { Role, UserRoleModel } from '@/model';
 
@@ -169,5 +169,59 @@ export async function verify(db : ReturnType<typeof createDb> , token : string ,
     catch (err) {
         console.log("Verify account error", err) 
         throw err
+    }
+}
+
+export async function forgotPassword(db : ReturnType<typeof createDb> , email : string , secretKey : string) 
+{
+    try 
+    {  
+        const user = await db.select().from(UserModel).where(eq(UserModel.email , email)) 
+        if (!user || user.length == 0) 
+            throw new HTTPException(
+                404, {
+                    message: "User not found" 
+                } 
+            ) 
+        const payload = {
+            sub: user[0].id.toString(), 
+            email: user[0].email, 
+            exp : Math.floor(Date.now() / 1000) + VERIFY_RESET_PASSWORD 
+        } 
+        const token = await createToken(TokenType.VERIFY_RESET_PASSWORD , payload , secretKey) 
+        return {
+            token 
+        }
+    } 
+    catch (err) {
+        console.log("Get password key error: " , err) 
+        throw err 
+    }
+}
+
+export async function changePassword(db : ReturnType<typeof createDb> , token : string , secretKey : string , data : ChangePasswordType) 
+{
+    try 
+    {
+        const payload = await verifyToken(token , secretKey)
+        const id = Number(payload.sub) 
+        if (!id) 
+            throw new HTTPException(
+                404, {
+                    message: "User not found"
+                }
+            )  
+        const passwordHash = await hashPass(data.password)
+        const user = await db.update(UserModel).set({
+            password : passwordHash
+        }).returning({
+            email: UserModel.email 
+        })
+        return "Password has been reset"
+    } 
+    catch (err) 
+    {
+        console.log("Change password error " , err) 
+        throw err 
     }
 }
