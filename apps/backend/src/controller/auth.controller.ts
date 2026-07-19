@@ -1,8 +1,9 @@
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
 import { describeRoute, validator } from 'hono-openapi';
-import { changePassword, forgotPassword, login, register, verify } from '@/service/auth.service'
-import { ChangePasswordDto, ChangePasswordQuery, ForgotPasswordQuery, LoginDto, RegisterDto, VerifyQuery } from '@/schema/auth.schema'
+import { changeEmail, changePassword, forgotPassword, login, register, verify, verifyChangeEmail } from '@/service/auth.service'
+import { ChangeEmailDto, ChangePasswordDto, ChangePasswordQuery, ForgotPasswordQuery, LoginDto, RegisterDto, VerifyChangeEmailDto, VerifyQuery } from '@/schema/auth.schema'
+import { AuthMiddleware } from '@/middleware/auth.middleware';
 
 const route = new Hono<AppEnv>();
 const tags = ['Auth'];
@@ -80,6 +81,38 @@ route.post('/change-password' , describeRoute({
         const data = await c.req.valid('json') 
         const secretKey = c.env.JWT_VERIFY_RESET_PASSWORD
         const response = await changePassword(db , token , secretKey , data) 
+        return c.text(response) 
+    }
+)
+
+route.post('/change-email' , describeRoute({
+    summary: 'Change email', 
+    tags, 
+    description: "Change account's email"
+}) , 
+    AuthMiddleware, 
+    validator('json' , ChangeEmailDto), 
+    async (c) => {
+        const db = await c.get('db')
+        const user = await c.get('user') 
+        const data = await c.req.valid('json')
+        const secretKey = c.env.JWT_VERIFY_RESET_EMAIL
+        const response = await changeEmail(db , Number(user.sub) , data , secretKey)
+        return c.json(response)
+    }
+)
+
+route.get('/verify-change-email' , describeRoute({
+    summary: "Verify change email", 
+    tags, 
+    description: "Verify account's new email"
+}) , 
+    validator('query' , VerifyChangeEmailDto), 
+    async (c) => {
+        const db = await c.get('db')
+        const { token } = await c.req.valid('query')
+        const secretKey = c.env.JWT_VERIFY_RESET_EMAIL
+        const response = await verifyChangeEmail(db , token , secretKey)
         return c.text(response) 
     }
 )

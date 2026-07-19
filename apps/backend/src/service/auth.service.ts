@@ -5,9 +5,9 @@ import { and, eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { createToken, verifyToken } from './jwt.service';
 import { TokenType } from '@/base/jwt.enum';
-import { ChangePasswordType, RegisterDtoType } from '@/schema/auth.schema';
+import { ChangePasswordType, RegisterDtoType , ChangeEmailType } from '@/schema/auth.schema';
 import { ACCESS_TOKEN_LIVETIME, REFRESH_TOKEN_LIVETIME, VERIFY_REGISTER, VERIFY_RESET_PASSWORD } from '@/base/jwt.constant';
-import { decodeBase64 } from 'bcryptjs';
+
 import { Role, UserRoleModel } from '@/model';
 
 //_______________HELPER FUNCTION
@@ -214,7 +214,9 @@ export async function changePassword(db : ReturnType<typeof createDb> , token : 
         const passwordHash = await hashPass(data.password)
         const user = await db.update(UserModel).set({
             password : passwordHash
-        }).returning({
+        })
+        .where(eq(UserModel.id , id))
+        .returning({
             email: UserModel.email 
         })
         return "Password has been reset"
@@ -222,6 +224,65 @@ export async function changePassword(db : ReturnType<typeof createDb> , token : 
     catch (err) 
     {
         console.log("Change password error " , err) 
+        throw err 
+    }
+}
+export async function changeEmail(db : ReturnType<typeof createDb> , userId : number , data : ChangeEmailType , secretKey : string) 
+{
+    try 
+    {
+        const user = await db.query.UserModel.findFirst({
+            where: eq(UserModel.id , userId)
+        }) 
+        if (!user) 
+            throw new HTTPException(
+                404, {
+                    message: "User not found" 
+                }
+            ) 
+        if (!comparePass(data.password , user.password)) 
+            throw new HTTPException(
+                400, {
+                    message: "Wrong password" 
+                }
+            )
+        const payload = {
+            sub: user.id.toString(), 
+            email : data.email 
+        } 
+        const token = await createToken(TokenType.VERIFY_RESET_EMAIL , payload , secretKey)
+        return {
+            token 
+        }
+    } 
+    catch (err) 
+    {
+        console.log("Change email error: " , err) 
+        throw err 
+    }
+}
+
+export async function verifyChangeEmail(db : ReturnType<typeof createDb>, token : string , secretKey : string) 
+{
+    try 
+    {
+        const payload = await verifyToken(token , secretKey)
+        const id = Number(payload.sub) 
+        const email = payload.email 
+        if (!id || !email) 
+            throw new HTTPException(
+                400, {
+                    message: "Invalid token"
+                }
+            )
+        await db.update(UserModel).set({
+            email: email as string 
+        }).where(eq(UserModel.id , id))
+        return "Account's email has been reset successfully" 
+    } 
+    catch (err) 
+    {
+        console.log("Verify change email error: " , err) 
         throw err 
     }
 }

@@ -38,6 +38,23 @@ export const ChangePasswordQuery = z.object({
         example: "cloudian123"
     })
 })
+
+export const ChangeEmailDto = z.object({
+    password : z.string().min(8).meta({
+        example: 'cloudian123'
+    }), 
+    email : z.email().meta({
+        example: 'cloudian@gmail.com'
+    })
+})
+
+export const VerifyChangeEmailDto = z.object({
+    token : z.string().meta({
+        example: "abcxyz..."
+    })
+})
+export type ChangeEmailType = z.infer<typeof ChangeEmailDto>
 export type ChangePasswordType = z.infer<typeof ChangePasswordDto>
 export type RegisterDtoType = z.infer<typeof RegisterDto> 
+
 export type LoginDtoType = z.infer<typeof LoginDto>
