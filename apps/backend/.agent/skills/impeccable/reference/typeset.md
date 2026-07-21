@@ -35,29 +35,29 @@ A missing `node` on PATH is not permission to skip: hunt for a runtime (`command
 This checklist is sub-agent A's brief (on the fallback path, work through it yourself before the pre-scan). Analyze what's weak or generic about the current type:
 
 1. **Font choices**:
-   - Are we using invisible defaults? (Inter, Roboto, Arial, Open Sans, system defaults)
-   - Does the font match the brand personality? (A playful brand shouldn't use a corporate typeface)
-   - Are there too many font families? (More than 2-3 is almost always a mess)
+    - Are we using invisible defaults? (Inter, Roboto, Arial, Open Sans, system defaults)
+    - Does the font match the brand personality? (A playful brand shouldn't use a corporate typeface)
+    - Are there too many font families? (More than 2-3 is almost always a mess)
 
 2. **Hierarchy**:
-   - Can you tell headings from body from captions at a glance?
-   - Are font sizes too close together? (14px, 15px, 16px = muddy hierarchy)
-   - Are weight contrasts strong enough? (Medium vs Regular is barely visible)
+    - Can you tell headings from body from captions at a glance?
+    - Are font sizes too close together? (14px, 15px, 16px = muddy hierarchy)
+    - Are weight contrasts strong enough? (Medium vs Regular is barely visible)
 
 3. **Sizing & scale**:
-   - Is there a consistent type scale, or are sizes arbitrary?
-   - Does body text meet minimum readability? (16px+)
-   - Is the sizing strategy appropriate for the context? (Fixed `rem` scales for app UIs; fluid `clamp()` for marketing/content page headings)
+    - Is there a consistent type scale, or are sizes arbitrary?
+    - Does body text meet minimum readability? (16px+)
+    - Is the sizing strategy appropriate for the context? (Fixed `rem` scales for app UIs; fluid `clamp()` for marketing/content page headings)
 
 4. **Readability**:
-   - Are line lengths comfortable? (45-75 characters ideal)
-   - Is line-height appropriate for the font and context?
-   - Is there enough contrast between text and background?
+    - Are line lengths comfortable? (45-75 characters ideal)
+    - Is line-height appropriate for the font and context?
+    - Is there enough contrast between text and background?
 
 5. **Consistency**:
-   - Are the same elements styled the same way throughout?
-   - Are font weights used consistently? (Not bold in one section, semibold in another for the same role)
-   - Is letter-spacing intentional or default everywhere?
+    - Are the same elements styled the same way throughout?
+    - Are font weights used consistently? (Not bold in one section, semibold in another for the same role)
+    - Is letter-spacing intentional or default everywhere?
 
 **CRITICAL**: The goal isn't to make text "fancier." It's to make it clearer, more readable, and more intentional. Good typography is invisible; bad typography is distracting.
 
@@ -77,6 +77,7 @@ Create a systematic plan:
 ### Font Selection
 
 If fonts need replacing:
+
 - Choose fonts that reflect the brand personality
 - Pair with genuine contrast (serif + sans, geometric + humanist), or use a single family in multiple weights
 - Ensure web font loading doesn't cause layout shift (`font-display: swap`, metric-matched fallbacks)
@@ -84,6 +85,7 @@ If fonts need replacing:
 ### Establish Hierarchy
 
 Build a clear type scale:
+
 - **5 sizes cover most needs**: caption, secondary, body, subheading, heading
 - **Use a consistent ratio** between levels (1.25, 1.333, or 1.5)
 - **Combine dimensions**: Size + weight + color + space for strong hierarchy. Don't rely on size alone
@@ -111,6 +113,7 @@ Build a clear type scale:
 - Load only the weights you actually use (each weight adds to page load)
 
 **NEVER**:
+
 - Use more than 2-3 font families
 - Pick sizes arbitrarily; commit to a scale
 - Set body text below 16px
@@ -138,7 +141,15 @@ When the type carries the hierarchy on its own, hand off to `$impeccable polish`
 Each variant MUST declare a `scale` param controlling the hierarchy ratio. Express all font sizes in the variant's scoped CSS through `calc(var(--p-scale, 1) * <base>)` or, better, scale the type ramp via `clamp(min, calc(var(--p-scale, 1) * Npx), max)`. Users slide from subdued to commanding.
 
 ```json
-{"id":"scale","kind":"range","min":0.85,"max":1.3,"step":0.05,"default":1,"label":"Scale"}
+{
+    "id": "scale",
+    "kind": "range",
+    "min": 0.85,
+    "max": 1.3,
+    "step": 0.05,
+    "default": 1,
+    "label": "Scale"
+}
 ```
 
 Where the variant riffs on a specific pairing, expose the pairing choice as a `steps` param (e.g. "serif display + sans body" vs. "mono display + sans body" vs. "all-sans"). Each branch routes through `:scope[data-p-pairing="X"]` selectors in scoped CSS.
@@ -165,13 +176,13 @@ The common mistake: too many font sizes that are too close together (14px, 15px,
 
 **Use fewer sizes with more contrast.** A 5-size system covers most needs:
 
-| Role | Typical Ratio | Use Case |
-|------|---------------|----------|
-| xs | 0.75rem | Captions, legal |
-| sm | 0.875rem | Secondary UI, metadata |
-| base | 1rem | Body text |
-| lg | 1.25-1.5rem | Subheadings, lead text |
-| xl+ | 2-4rem | Headlines, hero text |
+| Role | Typical Ratio | Use Case               |
+| ---- | ------------- | ---------------------- |
+| xs   | 0.75rem       | Captions, legal        |
+| sm   | 0.875rem      | Secondary UI, metadata |
+| base | 1rem          | Body text              |
+| lg   | 1.25-1.5rem   | Subheadings, lead text |
+| xl+  | 2-4rem        | Headlines, hero text   |
 
 Popular ratios: 1.25 (major third), 1.333 (perfect fourth), 1.5 (perfect fifth). Pick one and commit.
 
@@ -201,6 +212,7 @@ The tactical selection procedure and the reflex-reject list live in [reference/b
 **The non-obvious truth**: You often don't need a second font. One well-chosen font family in multiple weights creates cleaner hierarchy than two competing typefaces. Only add a second font when you need genuine contrast (e.g., display headlines + body serif).
 
 When pairing, contrast on multiple axes:
+
 - Serif + Sans (structure contrast)
 - Geometric + Humanist (personality contrast)
 - Condensed display + Wide body (proportion contrast)
@@ -212,23 +224,23 @@ The layout shift problem: fonts load late, text reflows, and users see content j
 ```css
 /* 1. Use font-display: swap for visibility */
 @font-face {
-  font-family: 'CustomFont';
-  src: url('font.woff2') format('woff2');
-  font-display: swap;
+    font-family: 'CustomFont';
+    src: url('font.woff2') format('woff2');
+    font-display: swap;
 }
 
 /* 2. Match fallback metrics to minimize shift */
 @font-face {
-  font-family: 'CustomFont-Fallback';
-  src: local('Arial');
-  size-adjust: 105%;        /* Scale to match x-height */
-  ascent-override: 90%;     /* Match ascender height */
-  descent-override: 20%;    /* Match descender depth */
-  line-gap-override: 10%;   /* Match line spacing */
+    font-family: 'CustomFont-Fallback';
+    src: local('Arial');
+    size-adjust: 105%; /* Scale to match x-height */
+    ascent-override: 90%; /* Match ascender height */
+    descent-override: 20%; /* Match descender depth */
+    line-gap-override: 10%; /* Match line spacing */
 }
 
 body {
-  font-family: 'CustomFont', 'CustomFont-Fallback', sans-serif;
+    font-family: 'CustomFont', 'CustomFont-Fallback', sans-serif;
 }
 ```
 
@@ -260,16 +272,24 @@ Most developers don't know these exist. Use them for polish:
 
 ```css
 /* Proper fractions */
-.recipe-amount { font-variant-numeric: diagonal-fractions; }
+.recipe-amount {
+    font-variant-numeric: diagonal-fractions;
+}
 
 /* Small caps for abbreviations */
-abbr { font-variant-caps: all-small-caps; }
+abbr {
+    font-variant-caps: all-small-caps;
+}
 
 /* Disable ligatures in code */
-code { font-variant-ligatures: none; }
+code {
+    font-variant-ligatures: none;
+}
 
 /* Enable kerning (usually on by default, but be explicit) */
-body { font-kerning: normal; }
+body {
+    font-kerning: normal;
+}
 ```
 
 Check what features your font supports at [Wakamai Fondue](https://wakamaifondue.com/).
@@ -278,7 +298,9 @@ Check what features your font supports at [Wakamai Fondue](https://wakamaifondue
 
 ```css
 /* Variable fonts: pick the right optical-size master automatically */
-body { font-optical-sizing: auto; }
+body {
+    font-optical-sizing: auto;
+}
 ```
 
 **ALL-CAPS tracking**: capitals sit too close at default spacing. Add 5–12% letter-spacing (`letter-spacing: 0.05em` to `0.12em`) to short all-caps labels, eyebrows, and small headings. Real small caps (via `font-variant-caps`) need the same treatment, slightly gentler.

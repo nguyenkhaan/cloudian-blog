@@ -8,10 +8,10 @@ import { openAPIRouteHandler } from 'hono-openapi';
 import { AppEnv } from './types/env';
 import { databaseMiddleware } from '@/middleware/database.middleware';
 
-// Importing routes 
+// Importing routes
 import HealthRoute from '@/controller/health.controller';
 import AuthRoute from '@/controller/auth.controller';
-import PostRoute from '@/controller/post.controller'
+import PostRoute from '@/controller/post.controller';
 const app = new Hono<AppEnv>();
 app.use('*', databaseMiddleware);
 app.notFound((c: Context) => {
@@ -69,7 +69,7 @@ app.get(
 //Adding route
 const apiRoute = new Hono<AppEnv>();
 apiRoute.route('/health', HealthRoute);
-apiRoute.route('/auth' , AuthRoute)
-apiRoute.route('/posts' , PostRoute)
+apiRoute.route('/auth', AuthRoute);
+apiRoute.route('/posts', PostRoute);
 app.route('/api', apiRoute);
 export default app;

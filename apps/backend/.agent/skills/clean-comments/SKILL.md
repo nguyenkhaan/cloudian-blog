@@ -2,7 +2,7 @@
 name: clean-comments
 description: Use when writing, fixing, editing, or reviewing comments and inline documentation (TSDoc, Docstrings, JSDoc, etc.). Enforces Clean Code principles—no metadata, no redundancy, no commented-out code.
 when_to_use: |
-  Also trigger on: commented-out code blocks, TODO/FIXME banners, author/ticket/date metadata in comments or documentation, inline documentation that no longer matches the code, redundant comments that restate the code (e.g. `i += 1; // increment i`), or asks like "is this comment useful", "why is this block commented".
+    Also trigger on: commented-out code blocks, TODO/FIXME banners, author/ticket/date metadata in comments or documentation, inline documentation that no longer matches the code, redundant comments that restate the code (e.g. `i += 1; // increment i`), or asks like "is this comment useful", "why is this block commented".
 ---
 
 # Clean Comments
@@ -32,6 +32,7 @@ i += 1; // compensate for zero-indexing in display
 ## C4: Write Comments Well
 
 If a comment is worth writing, write it well:
+
 - Choose words carefully
 - Use correct grammar
 - Don't ramble or state the obvious

@@ -2,7 +2,7 @@
 name: clean-general
 description: Use when writing, fixing, editing, or reviewing code quality. Enforces Clean Code's core principles—DRY, single responsibility, clear intent, no magic numbers, proper abstractions.
 when_to_use: |
-  Also trigger on: duplicated logic across files or branches (G5), magic numbers or hardcoded strings (G25), long if/else chains that should be union types plus polymorphism (G23), chained property access like `a.b.c.d` or long optional-chain trains (G36), functions juggling multiple responsibilities (G30), clever one-liners whose intent is not obvious (G16).
+    Also trigger on: duplicated logic across files or branches (G5), magic numbers or hardcoded strings (G25), long if/else chains that should be union types plus polymorphism (G23), chained property access like `a.b.c.d` or long optional-chain trains (G36), functions juggling multiple responsibilities (G30), clever one-liners whose intent is not obvious (G16).
 ---
 
 # General Clean Code Principles
@@ -22,7 +22,7 @@ const nyTotal = subtotal * 1.07;
 // Good - single source of truth
 const TAX_RATES: Record<string, number> = { CA: 0.0825, NY: 0.07 };
 function calculateTotal(subtotal: number, state: string): number {
-  return subtotal * (1 + TAX_RATES[state]);
+    return subtotal * (1 + TAX_RATES[state]);
 }
 ```
 
@@ -43,53 +43,53 @@ return packCoordinates(x, y);
 ```ts
 // Bad - will grow forever
 function calculatePay(employee: {
-  type: "SALARIED" | "HOURLY" | "COMMISSIONED";
-  salary?: number;
-  hours?: number;
-  rate?: number;
-  base?: number;
-  commission?: number;
+    type: 'SALARIED' | 'HOURLY' | 'COMMISSIONED';
+    salary?: number;
+    hours?: number;
+    rate?: number;
+    base?: number;
+    commission?: number;
 }): number {
-  if (employee.type === "SALARIED") {
-    return employee.salary ?? 0;
-  } else if (employee.type === "HOURLY") {
-    return (employee.hours ?? 0) * (employee.rate ?? 0);
-  } else if (employee.type === "COMMISSIONED") {
-    return (employee.base ?? 0) + (employee.commission ?? 0);
-  }
-  return 0;
+    if (employee.type === 'SALARIED') {
+        return employee.salary ?? 0;
+    } else if (employee.type === 'HOURLY') {
+        return (employee.hours ?? 0) * (employee.rate ?? 0);
+    } else if (employee.type === 'COMMISSIONED') {
+        return (employee.base ?? 0) + (employee.commission ?? 0);
+    }
+    return 0;
 }
 
 // Good - open/closed principle
 interface Employee {
-  calculatePay(): number;
+    calculatePay(): number;
 }
 
 class SalariedEmployee implements Employee {
-  constructor(private readonly salary: number) {}
-  calculatePay(): number {
-    return this.salary;
-  }
+    constructor(private readonly salary: number) {}
+    calculatePay(): number {
+        return this.salary;
+    }
 }
 
 class HourlyEmployee implements Employee {
-  constructor(
-    private readonly hours: number,
-    private readonly rate: number,
-  ) {}
-  calculatePay(): number {
-    return this.hours * this.rate;
-  }
+    constructor(
+        private readonly hours: number,
+        private readonly rate: number
+    ) {}
+    calculatePay(): number {
+        return this.hours * this.rate;
+    }
 }
 
 class CommissionedEmployee implements Employee {
-  constructor(
-    private readonly base: number,
-    private readonly commission: number,
-  ) {}
-  calculatePay(): number {
-    return this.base + this.commission;
-  }
+    constructor(
+        private readonly base: number,
+        private readonly commission: number
+    ) {}
+    calculatePay(): number {
+        return this.base + this.commission;
+    }
 }
 ```
 
@@ -98,13 +98,13 @@ class CommissionedEmployee implements Employee {
 ```ts
 // Bad
 if (elapsedTime > 86400) {
-  // ...
+    // ...
 }
 
 // Good
 const SECONDS_PER_DAY = 86400;
 if (elapsedTime > SECONDS_PER_DAY) {
-  // ...
+    // ...
 }
 ```
 
@@ -125,6 +125,7 @@ const outputDir = context.getScratchDir();
 ## Enforcement Checklist
 
 When reviewing AI-generated code, verify:
+
 - [ ] No duplication (G5)
 - [ ] Clear intent, no magic numbers (G16, G25)
 - [ ] Polymorphism over conditionals (G23)

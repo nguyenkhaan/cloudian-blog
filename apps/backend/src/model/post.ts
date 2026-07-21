@@ -10,7 +10,7 @@ export const PostModel = sqliteTable(
         title: text('title').notNull(),
         content: text('content').default(''),
         slug: text('slug'),
-        authorId: text('author_id').references(() => UserModel.id),
+        authorId: integer('author_id').references(() => UserModel.id),
         banner: text('banner'),
         status: text('status').$type<PostStatus>().default(PostStatus.DRAFT),
         publishedAt: integer('published_at', { mode: 'timestamp' }),

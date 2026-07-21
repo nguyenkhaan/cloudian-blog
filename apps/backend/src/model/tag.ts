@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable , text} from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { PostModel } from './post';
 
 export const TagModel = sqliteTable(

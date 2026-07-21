@@ -2,7 +2,7 @@
 name: clean-names
 description: Use when naming, renaming, or fixing names of variables, functions, classes, interfaces, or modules. Enforces Clean Code principles—descriptive names, appropriate length, no encodings.
 when_to_use: |
-  Also trigger on: single-letter or cryptic identifiers (`d`, `x`, `proc`), Hungarian notation (`strName`, `arrUsers`, `nCount`), `I`-prefixed interfaces (`IUserRepository`), function names that hide side effects (e.g. `getConfig` that also mutates state), ambiguous names like `rename(source, target)`, or asks like "rename this", "clearer name".
+    Also trigger on: single-letter or cryptic identifiers (`d`, `x`, `proc`), Hungarian notation (`strName`, `arrUsers`, `nCount`), `I`-prefixed interfaces (`IUserRepository`), function names that hide side effects (e.g. `getConfig` that also mutates state), ambiguous names like `rename(source, target)`, or asks like "rename this", "clearer name".
 ---
 
 # Clean Names
@@ -20,12 +20,12 @@ const SECONDS_PER_DAY = 86400;
 
 // Bad - what does this function do?
 function proc(values: number[]) {
-  return values.filter((value) => value > 0);
+    return values.filter((value) => value > 0);
 }
 
 // Good - intent is clear
 function filterPositiveNumbers(numbers: number[]) {
-  return numbers.filter((number) => number > 0);
+    return numbers.filter((number) => number > 0);
 }
 ```
 
@@ -36,12 +36,12 @@ Don't pick names that communicate implementation; choose names that reflect the 
 ```ts
 // Bad - too implementation-specific
 function getMapOfUserIdsToNames() {
-  // ...
+    // ...
 }
 
 // Good - abstracts the data structure
 function getUserDirectory() {
-  // ...
+    // ...
 }
 ```
 
@@ -52,14 +52,14 @@ Use terms from the domain, design patterns, or well-known conventions.
 ```ts
 // Good - uses pattern name
 class UserFactory {
-  create(data: unknown) {
-    // ...
-  }
+    create(data: unknown) {
+        // ...
+    }
 }
 
 // Good - uses domain term
 function calculateAmortization(principal: number, rate: number, term: number) {
-  // ...
+    // ...
 }
 ```
 
@@ -70,12 +70,12 @@ Choose names that make the workings of a function or variable unambiguous.
 ```ts
 // Bad - ambiguous
 function rename(source: string, target: string) {
-  // ...
+    // ...
 }
 
 // Good - clear what's being renamed
 function renameFile(oldPath: string, newPath: string) {
-  // ...
+    // ...
 }
 ```
 
@@ -100,23 +100,23 @@ Don't encode type or scope information into names. Modern editors make this unne
 
 ```ts
 // Bad - Hungarian notation
-const strName = "Alice";
+const strName = 'Alice';
 const arrUsers: string[] = [];
 const nCount = 0;
 
 // Good - clean names
-const name = "Alice";
+const name = 'Alice';
 const users: string[] = [];
 const count = 0;
 
 // Bad - interface prefix
 interface IUserRepository {
-  findById(id: string): Promise<unknown>;
+    findById(id: string): Promise<unknown>;
 }
 
 // Good - just name it
 interface UserRepository {
-  findById(id: string): Promise<unknown>;
+    findById(id: string): Promise<unknown>;
 }
 ```
 
@@ -129,29 +129,29 @@ const configStore = new Map<string, string>();
 
 // Bad - name doesn't mention file creation
 function getConfig(configPath: string) {
-  if (!configStore.has(configPath)) {
-    configStore.set(configPath, "{}"); // Hidden side effect!
-  }
-  return JSON.parse(configStore.get(configPath) ?? "{}");
+    if (!configStore.has(configPath)) {
+        configStore.set(configPath, '{}'); // Hidden side effect!
+    }
+    return JSON.parse(configStore.get(configPath) ?? '{}');
 }
 
 // Good - name reveals behavior
 function getOrCreateConfig(configPath: string) {
-  if (!configStore.has(configPath)) {
-    configStore.set(configPath, "{}");
-  }
-  return JSON.parse(configStore.get(configPath) ?? "{}");
+    if (!configStore.has(configPath)) {
+        configStore.set(configPath, '{}');
+    }
+    return JSON.parse(configStore.get(configPath) ?? '{}');
 }
 ```
 
 ## Quick Reference
 
-| Rule | Principle | Example |
-|------|-----------|---------|
-| N1 | Descriptive names | `SECONDS_PER_DAY` not `d` |
-| N2 | Right abstraction level | `getUserDirectory()` not `getMapOf...` |
-| N3 | Standard nomenclature | `UserFactory`, `calculateAmortization` |
-| N4 | Unambiguous | `renameFile(oldPath, newPath)` |
-| N5 | Length matches scope | Short for loops, long for globals |
-| N6 | No encodings | `users` not `arrUsers` |
-| N7 | Describe side effects | `getOrCreateConfig()` |
+| Rule | Principle               | Example                                |
+| ---- | ----------------------- | -------------------------------------- |
+| N1   | Descriptive names       | `SECONDS_PER_DAY` not `d`              |
+| N2   | Right abstraction level | `getUserDirectory()` not `getMapOf...` |
+| N3   | Standard nomenclature   | `UserFactory`, `calculateAmortization` |
+| N4   | Unambiguous             | `renameFile(oldPath, newPath)`         |
+| N5   | Length matches scope    | Short for loops, long for globals      |
+| N6   | No encodings            | `users` not `arrUsers`                 |
+| N7   | Describe side effects   | `getOrCreateConfig()`                  |

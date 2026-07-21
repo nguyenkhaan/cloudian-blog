@@ -15,18 +15,18 @@ Product: "bolder" rarely means theatrics; those undermine trust. It means strong
 Analyze what makes the design feel too safe or boring:
 
 1. **Identify weakness sources**:
-   - **Generic choices**: The page could belong to any product in the category.
-   - **Timid scale**: Everything is medium-sized with no clear lead.
-   - **Low contrast**: Important and supporting elements have similar visual weight.
-   - **Static**: The surface has no meaningful moment of emphasis.
-   - **Predictable**: The composition follows a default pattern without a point of view.
-   - **Flat hierarchy**: Nothing stands out or commands attention.
+    - **Generic choices**: The page could belong to any product in the category.
+    - **Timid scale**: Everything is medium-sized with no clear lead.
+    - **Low contrast**: Important and supporting elements have similar visual weight.
+    - **Static**: The surface has no meaningful moment of emphasis.
+    - **Predictable**: The composition follows a default pattern without a point of view.
+    - **Flat hierarchy**: Nothing stands out or commands attention.
 
 2. **Understand the context**:
-   - What is the brand personality?
-   - What is the purpose of this surface?
-   - Who is the audience?
-   - What design system, tokens, components, and visual conventions already exist?
+    - What is the brand personality?
+    - What is the purpose of this surface?
+    - Who is the audience?
+    - What design system, tokens, components, and visual conventions already exist?
 
 If any of these are unclear from the codebase, STOP and use Codex's structured user-input/question tool when available; if unavailable, ask directly in chat to clarify what you cannot infer.
 
@@ -58,42 +58,49 @@ Create a strategy to increase impact while maintaining coherence:
 Systematically increase impact through intention, not a menu of effects:
 
 ### Typography Amplification
+
 - Strengthen the existing type hierarchy before changing typefaces.
 - Make important text meaningfully more dominant, and make supporting text quieter.
 - Use weight, measure, spacing, and line breaks to sharpen the point of view.
 - Add or replace fonts only after user-approved design-system expansion.
 
 ### Color Amplification
+
 - Use the existing palette more decisively before adding colors.
 - Shift the proportion, placement, and contrast of documented colors to clarify meaning.
 - Treat any new color, gradient, or tint ramp as a design-system expansion that requires user approval.
 - Keep color tied to hierarchy, state, or brand meaning; do not use it as surface decoration.
 
 ### Spatial Amplification
+
 - Change proportion, density, alignment, and sequencing so the composition has a stronger point of view.
 - Create clearer contrast between dense evidence and open breathing room.
 - Let layout express priority and narrative order before adding ornament.
 - Preserve responsive behavior and avoid text overflow at every breakpoint.
 
 ### Surface Amplification
+
 - Use existing surface, border, radius, and shadow rules more deliberately.
 - Remove timid half-measures: either give an element a clear role or simplify it.
 - Add texture, depth, illustration, or decorative treatments only when already established by the system or explicitly approved.
 - Make real product artifacts, imagery, data, or copy carry attention before reaching for effects.
 
 ### Motion & Animation
+
 - Design one meaningful moment of emphasis when motion genuinely supports the point.
 - Make interaction feedback feel more decisive without becoming distracting.
 - Keep transitions smooth and intentional.
 - **Bolder != scroll-fade-rise on every section.** That's the saturated AI default, the opposite of bold.
 
 ### Composition Boldness
+
 - Make the dominant idea unmistakable.
 - Use layout tension, sequencing, contrast, and restraint to create a stronger read.
 - Let the page's structure communicate priority before adding decorative layers.
 - If every element is louder, the composition is not bolder; it is flatter.
 
 **NEVER**:
+
 - Add undocumented design-system primitives without user approval
 - Add effects randomly without purpose
 - Hide weak hierarchy behind decoration

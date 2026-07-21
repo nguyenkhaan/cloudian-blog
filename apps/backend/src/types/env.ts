@@ -7,10 +7,15 @@ export type AppEnv = {
         blogging_database: D1Database;
         JWT_ACCESS_SECRET: string;
         JWT_REFRESH_SECRET: string;
-        JWT_VERIFY_REGISTER: string; 
-        FE_URL : string; 
-        JWT_VERIFY_RESET_PASSWORD : string; 
-        JWT_VERIFY_RESET_EMAIL: string 
+        JWT_VERIFY_REGISTER: string;
+        FE_URL: string;
+        JWT_VERIFY_RESET_PASSWORD: string;
+        JWT_VERIFY_RESET_EMAIL: string;
+        //CLOUDINARY
+        CLOUDINARY_ROOT_FOLDER: string;
+        CLOUDIANRY_CLOUD_NAME: string;
+        CLOUDINARY_API_SECRET: string;
+        CLOUDINARY_API_KEY: string;
     };
     Variables: {
         db: ReturnType<typeof createDb>;
