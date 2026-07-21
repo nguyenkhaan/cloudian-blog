@@ -6,7 +6,7 @@ export const TagModel = sqliteTable(
     {
         id: integer('id').primaryKey({ autoIncrement: true }),
         name: text('name').notNull(),
-        slug: integer('slug'),
+        slug: text('slug'),
     },
     (table) => {
         return {

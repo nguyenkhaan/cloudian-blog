@@ -12,6 +12,8 @@ import { databaseMiddleware } from '@/middleware/database.middleware';
 import HealthRoute from '@/controller/health.controller';
 import AuthRoute from '@/controller/auth.controller';
 import PostRoute from '@/controller/post.controller';
+import CollectionRoute from '@/controller/collection.controller';
+import TagRoute from '@/controller/tag.controller';
 const app = new Hono<AppEnv>();
 app.use('*', databaseMiddleware);
 app.notFound((c: Context) => {
@@ -71,5 +73,7 @@ const apiRoute = new Hono<AppEnv>();
 apiRoute.route('/health', HealthRoute);
 apiRoute.route('/auth', AuthRoute);
 apiRoute.route('/posts', PostRoute);
+apiRoute.route('/collections', CollectionRoute);
+apiRoute.route('/tags', TagRoute);
 app.route('/api', apiRoute);
 export default app;

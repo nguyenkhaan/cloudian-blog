@@ -30605,7 +30605,7 @@ var require_api = __commonJS({
       params.transformations = utils.build_eager(transformations);
       return call_api("delete", uri, params, callback, options);
     }, "delete_derived_by_transformation");
-    exports.tags = /* @__PURE__ */ __name(function tags3(callback, options = {}) {
+    exports.tags = /* @__PURE__ */ __name(function tags5(callback, options = {}) {
       let resource_type, uri;
       resource_type = options.resource_type || "image";
       uri = ["tags", resource_type];
@@ -32544,7 +32544,7 @@ var HonoRequest = class {
    * ```
    */
   get matchedRoutes() {
-    return this.#matchResult[0].map(([[, route4]]) => route4);
+    return this.#matchResult[0].map(([[, route6]]) => route6);
   }
   /**
    * `routePath()` can retrieve the path registered within the handler
@@ -32563,7 +32563,7 @@ var HonoRequest = class {
    * ```
    */
   get routePath() {
-    return this.#matchResult[0].map(([[, route4]]) => route4)[this.routeIndex].path;
+    return this.#matchResult[0].map(([[, route6]]) => route6)[this.routeIndex].path;
   }
 };
 
@@ -33640,7 +33640,7 @@ function buildMatcherFromPreprocessedRoutes(routes) {
     return nullMatcher;
   }
   const routesWithStaticPathFlag = routes.map(
-    (route4) => [!/\*|\/:/.test(route4[0]), ...route4]
+    (route6) => [!/\*|\/:/.test(route6[0]), ...route6]
   ).sort(
     ([isStaticA, pathA], [isStaticB, pathB]) => isStaticA ? 1 : isStaticB ? -1 : pathA.length - pathB.length
   );
@@ -34581,10 +34581,10 @@ var toOpenAPIPathSegment = /* @__PURE__ */ __name((segment) => {
 }, "toOpenAPIPathSegment");
 var toOpenAPIPath = /* @__PURE__ */ __name((path) => path.split("/").map(toOpenAPIPathSegment).join("/"), "toOpenAPIPath");
 var toPascalCase = /* @__PURE__ */ __name((text2) => text2.split(/[\W_]+/).filter(Boolean).map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(""), "toPascalCase");
-var generateOperationId = /* @__PURE__ */ __name((route4) => {
-  let operationId = route4.method.toLowerCase();
-  if (route4.path === "/") return `${operationId}Index`;
-  for (const segment of route4.path.split("/")) {
+var generateOperationId = /* @__PURE__ */ __name((route6) => {
+  let operationId = route6.method.toLowerCase();
+  if (route6.path === "/") return `${operationId}Index`;
+  for (const segment of route6.path.split("/")) {
     const openApiPathSegment = toOpenAPIPathSegment(segment);
     if (openApiPathSegment.charCodeAt(0) === 123) {
       operationId += `By${toPascalCase(openApiPathSegment.slice(1, -1))}`;
@@ -34618,7 +34618,7 @@ function clearSpecsContext() {
   specsByPathContext.clear();
 }
 __name(clearSpecsContext, "clearSpecsContext");
-function mergeSpecs(route4, ...specs) {
+function mergeSpecs(route6, ...specs) {
   return specs.reduce(
     (prev, spec) => {
       if (!spec || !prev) return prev;
@@ -34635,7 +34635,7 @@ function mergeSpecs(route4, ...specs) {
               prev[key] = values;
             }
           } else if (typeof value === "function") {
-            prev[key] = value(route4);
+            prev[key] = value(route6);
           } else {
             if (key === "parameters") {
               prev[key] = mergeParameters(prev[key], value);
@@ -34653,23 +34653,23 @@ function mergeSpecs(route4, ...specs) {
       return prev;
     },
     {
-      operationId: generateOperationId(route4)
+      operationId: generateOperationId(route6)
     }
   );
 }
 __name(mergeSpecs, "mergeSpecs");
 function registerSchemaPath({
-  route: route4,
+  route: route6,
   specs,
   paths
 }) {
-  const path = toOpenAPIPath(route4.path);
-  const method = route4.method.toLowerCase();
+  const path = toOpenAPIPath(route6.path);
+  const method = route6.method.toLowerCase();
   if (method === "all") {
     if (!specs) return;
     if (specsByPathContext.has(path)) {
       const prev = specsByPathContext.get(path) ?? {};
-      specsByPathContext.set(path, mergeSpecs(route4, prev, specs));
+      specsByPathContext.set(path, mergeSpecs(route6, prev, specs));
     } else {
       specsByPathContext.set(path, specs);
     }
@@ -34680,7 +34680,7 @@ function registerSchemaPath({
     }
     if (paths[path]) {
       paths[path][method] = mergeSpecs(
-        route4,
+        route6,
         ...pathContext,
         paths[path]?.[method],
         specs
@@ -34834,18 +34834,18 @@ async function generateSpecs(hono, options = DEFAULT_OPTIONS, c) {
 __name(generateSpecs, "generateSpecs");
 async function generatePaths(hono, ctx) {
   const paths = {};
-  for (const route4 of hono.routes) {
-    const middlewareHandler = findTargetHandler(route4.handler)[uniqueSymbol];
+  for (const route6 of hono.routes) {
+    const middlewareHandler = findTargetHandler(route6.handler)[uniqueSymbol];
     if (!middlewareHandler) {
       if (ctx.options.includeEmptyPaths) {
         registerSchemaPath({
-          route: route4,
+          route: route6,
           paths
         });
       }
       continue;
     }
-    const routeMethod = route4.method;
+    const routeMethod = route6.method;
     if (routeMethod !== "ALL") {
       if (ctx.options.excludeMethods?.includes(routeMethod)) {
         continue;
@@ -34861,7 +34861,7 @@ async function generatePaths(hono, ctx) {
     );
     ctx.components = mergeComponentsObjects(ctx.components, components);
     registerSchemaPath({
-      route: route4,
+      route: route6,
       specs: routeSpecs,
       paths
     });
@@ -41256,7 +41256,7 @@ var TagModel = sqliteTable(
   {
     id: integer2("id").primaryKey({ autoIncrement: true }),
     name: text("name").notNull(),
-    slug: integer2("slug")
+    slug: text("slug")
   },
   (table) => {
     return {
@@ -44547,7 +44547,7 @@ async function createPost(db, userId, data) {
       slug: PostModel.slug,
       banner: PostModel.banner
     });
-    const tags3 = data.tagIds?.map((tag) => ({
+    const tags5 = data.tagIds?.map((tag) => ({
       tagId: tag,
       postId: post[0].id
     })) || [];
@@ -44555,7 +44555,7 @@ async function createPost(db, userId, data) {
       collectionId: collection,
       postId: post[0].id
     })) || [];
-    if (tags3.length > 0) await db.insert(PostTagModel).values(tags3);
+    if (tags5.length > 0) await db.insert(PostTagModel).values(tags5);
     if (collections.length > 0)
       await db.insert(PostCollectionModel).values(collections);
     return {
@@ -45059,6 +45059,375 @@ route3.put(
 );
 var post_controller_default = route3;
 
+// src/controller/collection.controller.ts
+init_modules_watch_stub();
+
+// src/schema/collection.schema.ts
+init_modules_watch_stub();
+var CreateCollectionDto = external_exports.object({
+  name: external_exports.string().min(1, "Name is required").meta({ example: "Programming" }),
+  description: external_exports.string().min(1, "Description is required").meta({ example: "Guides about code" }),
+  thumbnail: external_exports.string().optional().nullable().meta({ example: "https://example.com/thumb.png" })
+});
+var UpdateCollectionDto = external_exports.object({
+  name: external_exports.string().min(1, "Name is required").optional().meta({ example: "Updated Name" }),
+  description: external_exports.string().min(1, "Description is required").optional().meta({ example: "Updated description" }),
+  thumbnail: external_exports.string().optional().nullable().meta({ example: "https://example.com/new-thumb.png" })
+});
+var CollectionIdParam = external_exports.object({
+  id: external_exports.coerce.number().meta({ example: "1" })
+});
+
+// src/service/collection.service.ts
+init_modules_watch_stub();
+async function getAllCollections(db) {
+  try {
+    const results = await db.select({
+      id: CollectionModel.id,
+      name: CollectionModel.name,
+      description: CollectionModel.description,
+      thumbnail: CollectionModel.thumbnail,
+      postCount: sql`count(${PostModel.id})`.mapWith(Number)
+    }).from(CollectionModel).leftJoin(
+      PostCollectionModel,
+      eq(CollectionModel.id, PostCollectionModel.collectionId)
+    ).leftJoin(
+      PostModel,
+      and(
+        eq(PostCollectionModel.postId, PostModel.id),
+        eq(PostModel.status, "published" /* PUBLISHED */)
+      )
+    ).groupBy(CollectionModel.id);
+    return results;
+  } catch (err) {
+    console.error("Get all collections error: ", err);
+    throw err;
+  }
+}
+__name(getAllCollections, "getAllCollections");
+async function getCollectionDetails(db, id) {
+  try {
+    const collection = await db.query.CollectionModel.findFirst({
+      where: eq(CollectionModel.id, id)
+    });
+    if (!collection) {
+      throw new HTTPException(404, {
+        message: "Collection not found"
+      });
+    }
+    const posts = await db.select({
+      id: PostModel.id,
+      title: PostModel.title,
+      slug: PostModel.slug
+    }).from(PostModel).innerJoin(
+      PostCollectionModel,
+      eq(PostModel.id, PostCollectionModel.postId)
+    ).where(
+      and(
+        eq(PostCollectionModel.collectionId, id),
+        eq(PostModel.status, "published" /* PUBLISHED */)
+      )
+    );
+    return {
+      ...collection,
+      posts
+    };
+  } catch (err) {
+    console.error("Get collection details error: ", err);
+    throw err;
+  }
+}
+__name(getCollectionDetails, "getCollectionDetails");
+async function createCollection(db, data) {
+  try {
+    const result = await db.insert(CollectionModel).values({
+      name: data.name,
+      description: data.description,
+      thumbnail: data.thumbnail || null
+    }).returning({ id: CollectionModel.id });
+    const created = result[0];
+    if (!created) {
+      throw new HTTPException(500, {
+        message: "Failed to create collection"
+      });
+    }
+    return {
+      success: true,
+      collectionId: created.id
+    };
+  } catch (err) {
+    console.error("Create collection error: ", err);
+    throw err;
+  }
+}
+__name(createCollection, "createCollection");
+async function updateCollection(db, id, data) {
+  try {
+    const collection = await db.query.CollectionModel.findFirst({
+      where: eq(CollectionModel.id, id)
+    });
+    if (!collection) {
+      throw new HTTPException(404, {
+        message: "Collection not found"
+      });
+    }
+    await db.update(CollectionModel).set({
+      ...data,
+      updatedAt: /* @__PURE__ */ new Date()
+    }).where(eq(CollectionModel.id, id));
+    return {
+      success: true
+    };
+  } catch (err) {
+    console.error("Update collection error: ", err);
+    throw err;
+  }
+}
+__name(updateCollection, "updateCollection");
+async function deleteCollection(db, id) {
+  try {
+    const collection = await db.query.CollectionModel.findFirst({
+      where: eq(CollectionModel.id, id)
+    });
+    if (!collection) {
+      throw new HTTPException(404, {
+        message: "Collection not found"
+      });
+    }
+    await db.transaction(async (tx) => {
+      await tx.delete(PostCollectionModel).where(eq(PostCollectionModel.collectionId, id));
+      await tx.delete(CollectionModel).where(eq(CollectionModel.id, id));
+    });
+    return {
+      success: true
+    };
+  } catch (err) {
+    console.error("Delete collection error: ", err);
+    throw err;
+  }
+}
+__name(deleteCollection, "deleteCollection");
+
+// src/controller/collection.controller.ts
+var route4 = new Hono2();
+var tags3 = ["Collection"];
+route4.get(
+  "/",
+  describeRoute({
+    summary: "Get all collections",
+    description: "Get all collections with post count",
+    tags: tags3
+  }),
+  async (c) => {
+    const db = await c.get("db");
+    const response = await getAllCollections(db);
+    return c.json(response);
+  }
+);
+route4.get(
+  "/:id",
+  describeRoute({
+    summary: "Get collection details",
+    description: "Get collection details and its associated posts",
+    tags: tags3
+  }),
+  validator2("param", CollectionIdParam),
+  async (c) => {
+    const db = await c.get("db");
+    const { id } = await c.req.valid("param");
+    const response = await getCollectionDetails(db, id);
+    return c.json(response);
+  }
+);
+route4.post(
+  "/",
+  AuthMiddleware,
+  requireRole("admin" /* ADMIN */),
+  describeRoute({
+    summary: "Create collection",
+    description: "Create a new collection",
+    tags: tags3
+  }),
+  validator2("json", CreateCollectionDto),
+  async (c) => {
+    const db = await c.get("db");
+    const data = await c.req.valid("json");
+    const response = await createCollection(db, data);
+    return c.json(response, 201);
+  }
+);
+route4.put(
+  "/:id",
+  AuthMiddleware,
+  requireRole("admin" /* ADMIN */),
+  describeRoute({
+    summary: "Update collection",
+    description: "Update collection details by ID",
+    tags: tags3
+  }),
+  validator2("param", CollectionIdParam),
+  validator2("json", UpdateCollectionDto),
+  async (c) => {
+    const db = await c.get("db");
+    const { id } = await c.req.valid("param");
+    const data = await c.req.valid("json");
+    const response = await updateCollection(db, id, data);
+    return c.json(response);
+  }
+);
+route4.delete(
+  "/:id",
+  AuthMiddleware,
+  requireRole("admin" /* ADMIN */),
+  describeRoute({
+    summary: "Delete collection",
+    description: "Delete a collection by ID",
+    tags: tags3
+  }),
+  validator2("param", CollectionIdParam),
+  async (c) => {
+    const db = await c.get("db");
+    const { id } = await c.req.valid("param");
+    const response = await deleteCollection(db, id);
+    return c.json(response);
+  }
+);
+var collection_controller_default = route4;
+
+// src/controller/tag.controller.ts
+init_modules_watch_stub();
+
+// src/schema/tag.schema.ts
+init_modules_watch_stub();
+var CreateTagDto = external_exports.object({
+  name: external_exports.string().min(1, "Name is required").meta({ example: "React" }),
+  slug: external_exports.string().min(1, "Slug is required").meta({ example: "react" })
+});
+var TagIdParam = external_exports.object({
+  id: external_exports.coerce.number().meta({ example: "1" })
+});
+
+// src/service/tag.service.ts
+init_modules_watch_stub();
+async function getAllTags(db) {
+  try {
+    const results = await db.query.TagModel.findMany();
+    return results;
+  } catch (err) {
+    console.error("Get all tags error: ", err);
+    throw err;
+  }
+}
+__name(getAllTags, "getAllTags");
+async function createTag(db, data) {
+  try {
+    const existing = await db.query.TagModel.findFirst({
+      where: or(
+        eq(TagModel.name, data.name),
+        eq(TagModel.slug, data.slug)
+      )
+    });
+    if (existing) {
+      throw new HTTPException(400, {
+        message: "Tag name or slug already exists"
+      });
+    }
+    const result = await db.insert(TagModel).values({
+      name: data.name,
+      slug: data.slug
+    }).returning({ id: TagModel.id });
+    const created = result[0];
+    if (!created) {
+      throw new HTTPException(500, {
+        message: "Failed to create tag"
+      });
+    }
+    return {
+      success: true,
+      tagId: created.id
+    };
+  } catch (err) {
+    console.error("Create tag error: ", err);
+    throw err;
+  }
+}
+__name(createTag, "createTag");
+async function deleteTag(db, id) {
+  try {
+    const tag = await db.query.TagModel.findFirst({
+      where: eq(TagModel.id, id)
+    });
+    if (!tag) {
+      throw new HTTPException(404, {
+        message: "Tag not found"
+      });
+    }
+    await db.transaction(async (tx) => {
+      await tx.delete(PostTagModel).where(eq(PostTagModel.tagId, id));
+      await tx.delete(TagModel).where(eq(TagModel.id, id));
+    });
+    return {
+      success: true
+    };
+  } catch (err) {
+    console.error("Delete tag error: ", err);
+    throw err;
+  }
+}
+__name(deleteTag, "deleteTag");
+
+// src/controller/tag.controller.ts
+var route5 = new Hono2();
+var tags4 = ["Tag"];
+route5.get(
+  "/",
+  describeRoute({
+    summary: "Get all tags",
+    description: "Get all tags available in the database",
+    tags: tags4
+  }),
+  async (c) => {
+    const db = await c.get("db");
+    const response = await getAllTags(db);
+    return c.json(response);
+  }
+);
+route5.post(
+  "/",
+  AuthMiddleware,
+  requireRole("user" /* USER */),
+  describeRoute({
+    summary: "Create tag",
+    description: "Create a new tag",
+    tags: tags4
+  }),
+  validator2("json", CreateTagDto),
+  async (c) => {
+    const db = await c.get("db");
+    const data = await c.req.valid("json");
+    const response = await createTag(db, data);
+    return c.json(response, 201);
+  }
+);
+route5.delete(
+  "/:id",
+  AuthMiddleware,
+  requireRole("admin" /* ADMIN */),
+  describeRoute({
+    summary: "Delete tag",
+    description: "Delete a tag by ID",
+    tags: tags4
+  }),
+  validator2("param", TagIdParam),
+  async (c) => {
+    const db = await c.get("db");
+    const { id } = await c.req.valid("param");
+    const response = await deleteTag(db, id);
+    return c.json(response);
+  }
+);
+var tag_controller_default = route5;
+
 // src/index.ts
 var app = new Hono2();
 app.use("*", databaseMiddleware);
@@ -45114,6 +45483,8 @@ var apiRoute = new Hono2();
 apiRoute.route("/health", health_controller_default);
 apiRoute.route("/auth", auth_controller_default);
 apiRoute.route("/posts", post_controller_default);
+apiRoute.route("/collections", collection_controller_default);
+apiRoute.route("/tags", tag_controller_default);
 app.route("/api", apiRoute);
 var src_default = app;
 
