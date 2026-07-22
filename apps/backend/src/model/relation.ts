@@ -4,11 +4,18 @@ import { UserRoleModel } from './userRole';
 import { PostModel } from './post';
 import { CollectionModel, PostCollectionModel } from './collection';
 import { PostTagModel, TagModel } from './tag';
+import { ReportModel } from './report';
+import { ChatMessageModel } from './chatMessage';
+import { ChatSessionModel } from './chatSession';
+import { CommentModel } from './comment';
 
 export const UserRelations = relations(UserModel, ({ one, many }) => {
     return {
         roles: many(UserRoleModel),
         posts: many(PostModel),
+        reports : many(ReportModel), 
+        messages : many(ChatMessageModel), 
+        comments: many(CommentModel)
     };
 });
 
@@ -29,6 +36,7 @@ export const PostRelations = relations(PostModel, ({ one, many }) => {
         }),
         postCollections: many(PostCollectionModel),
         postTags: many(PostTagModel),
+        comments: many(CommentModel)
     };
 });
 
@@ -78,3 +86,57 @@ export const TagCollectionRelations = relations(
         };
     }
 );
+
+export const ReportRelations = relations(
+    ReportModel, 
+    ({ one , many}) => {
+        return {
+            user: one(UserModel , {
+                fields: [ReportModel.userId], 
+                references: [UserModel.id]
+            })
+        }
+    }
+)
+
+export const ChatMessageRelations = relations(
+    ChatMessageModel, 
+    ({one , many}) => {
+        return {
+            user : one(UserModel , {
+                fields: [ChatMessageModel.userId], 
+                references : [UserModel.id]
+            }), 
+            session: one(ChatSessionModel , {
+                fields : [ChatMessageModel.sessionId], 
+                references: [ChatSessionModel.id]
+            })
+        }
+
+    }
+)
+
+export const ChatSessionRelations = relations(
+    ChatSessionModel, 
+    ({ one , many }) => {
+        return {
+            messages : many(ChatMessageModel)
+        }
+    }
+)
+
+export const CommentRelations = relations(
+    CommentModel, 
+    ({ one , many }) => {
+        return {
+            post: one(PostModel , {
+                fields: [CommentModel.postId], 
+                references : [PostModel.id]
+            }), 
+            user: one(UserModel , {
+                fields: [CommentModel.userId], 
+                references: [UserModel.id]
+            })
+        }
+    }
+)

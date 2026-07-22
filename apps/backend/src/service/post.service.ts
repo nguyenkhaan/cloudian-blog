@@ -20,7 +20,6 @@ import {
 import { and, desc, eq, inArray, SQL } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { displayPartsToString } from 'typescript';
-import id from 'zod/v4/locales/id.cjs';
 
 export async function getAllPost(
     db: ReturnType<typeof createDb>,

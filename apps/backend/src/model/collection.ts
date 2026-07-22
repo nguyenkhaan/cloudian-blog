@@ -9,7 +9,7 @@ export const CollectionModel = sqliteTable(
         name: text('name').notNull(),
         description: text('description').notNull(),
         thumbnail: text('thumbnail'),
-        createdAt: integer('created_at')
+        createdAt: integer('created_at' , { mode : 'timestamp' })
             .notNull()
             .default(sql`(strftime('%s', 'now') * 1000)`),
         updatedAt: integer('updated_at', { mode: 'timestamp' })

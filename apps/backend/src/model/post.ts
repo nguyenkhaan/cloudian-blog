@@ -14,7 +14,7 @@ export const PostModel = sqliteTable(
         banner: text('banner'),
         status: text('status').$type<PostStatus>().default(PostStatus.DRAFT),
         publishedAt: integer('published_at', { mode: 'timestamp' }),
-        createdAt: integer('created_at')
+        createdAt: integer('created_at' , {mode : 'timestamp'})
             .notNull()
             .default(sql`(strftime('%s', 'now') * 1000)`),
         updatedAt: integer('updated_at', { mode: 'timestamp' })
