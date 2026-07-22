@@ -1,6 +1,14 @@
 import { createDb } from '@/db';
-import { CollectionModel, PostCollectionModel, PostModel, PostStatus } from '@/model';
-import { CreateCollectionDtoType, UpdateCollectionDtoType } from '@/schema/collection.schema';
+import {
+    CollectionModel,
+    PostCollectionModel,
+    PostModel,
+    PostStatus,
+} from '@/model';
+import {
+    CreateCollectionDtoType,
+    UpdateCollectionDtoType,
+} from '@/schema/collection.schema';
 import { and, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 
@@ -35,7 +43,10 @@ export async function getAllCollections(db: ReturnType<typeof createDb>) {
     }
 }
 
-export async function getCollectionDetails(db: ReturnType<typeof createDb>, id: number) {
+export async function getCollectionDetails(
+    db: ReturnType<typeof createDb>,
+    id: number
+) {
     try {
         const collection = await db.query.CollectionModel.findFirst({
             where: eq(CollectionModel.id, id),
@@ -95,7 +106,7 @@ export async function createCollection(
                 message: 'Failed to create collection',
             });
         }
-
+        console.log("Hello collection") 
         return {
             success: true,
             collectionId: created.id,
@@ -139,7 +150,10 @@ export async function updateCollection(
     }
 }
 
-export async function deleteCollection(db: ReturnType<typeof createDb>, id: number) {
+export async function deleteCollection(
+    db: ReturnType<typeof createDb>,
+    id: number
+) {
     try {
         const collection = await db.query.CollectionModel.findFirst({
             where: eq(CollectionModel.id, id),
@@ -156,9 +170,7 @@ export async function deleteCollection(db: ReturnType<typeof createDb>, id: numb
                 .delete(PostCollectionModel)
                 .where(eq(PostCollectionModel.collectionId, id));
 
-            await tx
-                .delete(CollectionModel)
-                .where(eq(CollectionModel.id, id));
+            await tx.delete(CollectionModel).where(eq(CollectionModel.id, id));
         });
 
         return {

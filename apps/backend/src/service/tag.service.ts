@@ -14,7 +14,10 @@ export async function getAllTags(db: ReturnType<typeof createDb>) {
     }
 }
 
-export async function createTag(db: ReturnType<typeof createDb>, data: CreateTagDtoType) {
+export async function createTag(
+    db: ReturnType<typeof createDb>,
+    data: CreateTagDtoType
+) {
     try {
         const existing = await db.query.TagModel.findFirst({
             where: or(
@@ -67,13 +70,9 @@ export async function deleteTag(db: ReturnType<typeof createDb>, id: number) {
         }
 
         await db.transaction(async (tx) => {
-            await tx
-                .delete(PostTagModel)
-                .where(eq(PostTagModel.tagId, id));
+            await tx.delete(PostTagModel).where(eq(PostTagModel.tagId, id));
 
-            await tx
-                .delete(TagModel)
-                .where(eq(TagModel.id, id));
+            await tx.delete(TagModel).where(eq(TagModel.id, id));
         });
 
         return {
