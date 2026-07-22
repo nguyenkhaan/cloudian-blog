@@ -33,8 +33,6 @@ import {
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
 import { describeRoute, validator } from 'hono-openapi';
-import { eq } from 'drizzle-orm';
-import { HTTPException } from 'hono/http-exception';
 
 const route = new Hono<AppEnv>();
 const tags = ['Post'];
@@ -111,7 +109,7 @@ route.get(
 route.post(
     '/',
     AuthMiddleware,
-    requireRole(Role.USER),
+    requireRole(Role.MANAGER),
     describeRoute({
         tags,
         summary: 'Create post',
@@ -131,7 +129,7 @@ route.post(
 route.post(
     '/upload',
     AuthMiddleware,
-    requireRole(Role.USER),
+    requireRole(Role.MANAGER),
     describeRoute({
         tags,
         summary: 'Signature upload',
@@ -156,7 +154,7 @@ route.post(
 route.put(
     '/:postId',
     AuthMiddleware,
-    requireRole(Role.USER),
+    requireRole(Role.MANAGER),
     describeRoute({
         tags,
         summary: 'Edit post',
@@ -178,6 +176,7 @@ route.put(
 route.delete(
     '/:postId',
     AuthMiddleware,
+    requireRole(Role.MANAGER), 
     describeRoute({
         tags,
         summary: 'Delete post',
@@ -223,6 +222,7 @@ route.patch(
 route.put(
     '/:postId/collections',
     AuthMiddleware,
+    requireRole(Role.MANAGER), 
     describeRoute({
         tags,
         summary: 'Save post to collections',
@@ -253,6 +253,7 @@ route.put(
 route.put(
     '/:postId/tags',
     AuthMiddleware,
+    requireRole(Role.MANAGER), 
     describeRoute({
         tags,
         summary: 'Save post tags',

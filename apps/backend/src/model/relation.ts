@@ -8,6 +8,7 @@ import { ReportModel } from './report';
 import { ChatMessageModel } from './chatMessage';
 import { ChatSessionModel } from './chatSession';
 import { CommentModel } from './comment';
+import { OAuthModel } from './provider';
 
 export const UserRelations = relations(UserModel, ({ one, many }) => {
     return {
@@ -15,7 +16,8 @@ export const UserRelations = relations(UserModel, ({ one, many }) => {
         posts: many(PostModel),
         reports : many(ReportModel), 
         messages : many(ChatMessageModel), 
-        comments: many(CommentModel)
+        comments: many(CommentModel), 
+        oauths: many(OAuthModel)
     };
 });
 
@@ -136,6 +138,18 @@ export const CommentRelations = relations(
             user: one(UserModel , {
                 fields: [CommentModel.userId], 
                 references: [UserModel.id]
+            })
+        }
+    }
+)
+
+export const OAuthProviderRelations = relations(
+    OAuthModel, 
+    ({ one , many }) => {
+        return {
+            user: one(UserModel , {
+                fields: [OAuthModel.userId], 
+                references : [UserModel.id]
             })
         }
     }

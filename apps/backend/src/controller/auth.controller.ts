@@ -23,6 +23,8 @@ import {
     VerifyQuery,
 } from '@/schema/auth.schema';
 import { AuthMiddleware } from '@/middleware/auth.middleware';
+import { requireRole } from '@/middleware/role.middlware';
+import { Role } from '@/model';
 
 const route = new Hono<AppEnv>();
 const tags = ['Auth'];
@@ -55,6 +57,8 @@ route.post(
 
 route.post(
     '/register',
+    AuthMiddleware, 
+    requireRole(Role.ADMIN), //Chi co admin moi duoc quyen truy cap va dang ky tai khoan cho nguoi dung 
     describeRoute({
         summary: 'Register',
         tags,
@@ -103,6 +107,17 @@ route.get(
         return c.json(response);
     }
 );
+
+route.post('/login-google' , describeRoute({
+    tags, 
+    summary: "Login google", 
+    description: "Use for login google for user"
+}) , 
+    async (c) => {
+        return c.text("Login google successfully") 
+    }
+
+)
 route.post(
     '/change-password',
     describeRoute({
@@ -178,5 +193,6 @@ route.post(
         return c.json(response);
     }
 );
+
 
 export default route;

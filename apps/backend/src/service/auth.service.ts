@@ -183,7 +183,7 @@ export async function verify(
             .where(eq(UserModel.id, id));
         //Assign roles
         await db.insert(UserRoleModel).values({
-            role: Role.USER,
+            role: Role.MANAGER,   //Nguoi dung user thi moi co the tien hanh dang ky 
             userId: user.id,
         });
         return 'User account has been active';
