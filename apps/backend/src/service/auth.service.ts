@@ -17,7 +17,10 @@ import {
     VERIFY_RESET_PASSWORD,
 } from '@/base/jwt.constant';
 
-import { Role, UserRoleModel } from '@/model';
+import { AuthProvider, OAuthModel, Role, UserRoleModel } from '@/model';
+import { TemplateService } from './template.service';
+import { MailService } from './mail.service';
+import { AppEnv } from '@/types/env';
 
 //_______________HELPER FUNCTION
 
@@ -46,6 +49,19 @@ export async function login(
                 message: 'Wrong password',
             });
         const userRoles = user.roles.map((rrole) => rrole.role);
+
+        //Store information toe the oatuh provider 
+        const oauth = await db.query.OAuthModel.findFirst({
+            where: and(eq(OAuthModel.userId , user.id) ,  eq(OAuthModel.provider , AuthProvider.LOCAL) ), 
+            columns: {id : true }
+        })
+        if (!oauth) {
+            await db.insert(OAuthModel).values({
+                userId: user.id, 
+                provider: AuthProvider.LOCAL
+            })
+        }
+
         const payload = {
             sub: user.id.toString(),
             roles: userRoles,
@@ -69,6 +85,7 @@ export async function login(
         return {
             accessToken,
             refreshToken,
+            provider: AuthProvider.LOCAL
         };
     } catch (err) {
         console.log('login error: ', err);
@@ -79,9 +96,15 @@ export async function login(
 export async function register(
     db: ReturnType<typeof createDb>,
     data: RegisterDtoType,
-    verifySecret: string
+    verifySecret: string, 
+    env : AppEnv['Bindings']
 ) {
     try {
+        
+        const validMinutes = VERIFY_REGISTER / 60
+        const FE = env.FE_URL
+        const mailService = new MailService(env) // Create email isntance - chac vay 
+
         const user = await db.query.UserModel.findFirst({
             where: and(
                 eq(UserModel.email, data.email)
@@ -90,10 +113,13 @@ export async function register(
             columns: {
                 id: true,
                 active: true,
+                name : true, 
                 approve: true,
                 email: true,
             },
         });
+
+
         if (user) {
             if (user.active)
                 throw new HTTPException(400, {
@@ -110,6 +136,14 @@ export async function register(
                     payload,
                     verifySecret
                 );
+                
+                //Create payload to send email 
+                const verificationUrl = `${FE}/verify?token=${verifyToken}`   //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend 
+                const name = user.name  
+
+                //Sending email 
+                const html = TemplateService.verifyRegister({ name , verificationUrl , validMinutes})
+                await mailService.sendEmail(user.email , 'Verify Register' , html)
                 return {
                     user,
                     verifyToken,
@@ -144,6 +178,15 @@ export async function register(
             payload,
             verifySecret
         );
+        
+        
+        // Create payload to send email 
+        const verificationUrl = `${FE}/verify?token=${verifyToken}`   //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend 
+        const name = newUser[0]?.name || '' 
+        //Sending email 
+        const html = TemplateService.verifyRegister({ name , verificationUrl , validMinutes})
+        await mailService.sendEmail(newUser[0]?.email || '' , 'Verify Register' , html)
+
         return {
             user: newUser[0]!,
             verifyToken,

@@ -50,7 +50,7 @@ async function main() {
             }
             //Seed manager 
             const managerPassword = await hashPass('cloudian123') 
-            insertUser.runn(
+            insertUser.run(
                 'manager@gmail.com', 
                 'Manager', 
                 'manager', 

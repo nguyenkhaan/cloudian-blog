@@ -22,6 +22,13 @@
       "when": 1784714143593,
       "tag": "0002_curious_thunderbolt_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1784732007495,
+      "tag": "0003_shiny_wallflower",
+      "breakpoints": true
     }
   ]
 }

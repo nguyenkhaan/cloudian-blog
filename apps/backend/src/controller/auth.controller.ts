@@ -69,7 +69,7 @@ route.post(
         const data = await c.req.valid('json');
         const db = await c.get('db');
         const verifySecret = c.env.JWT_VERIFY_REGISTER;
-        const response = await register(db, data, verifySecret);
+        const response = await register(db, data, verifySecret, c.env);
         return c.json(response);
     }
 );

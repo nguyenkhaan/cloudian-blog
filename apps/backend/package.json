@@ -3,16 +3,19 @@
     "scripts": {
         "dev": "bunx wrangler dev --port 3000",
         "studio": "bunx drizzle-kit studio",
-        "seed": "bunx tsx src/seed.ts"
+        "seed": "bunx tsx src/seed.ts",
+        "migrate": "bunx wrangler d1 migrations apply blogging-database"
     },
     "dependencies": {
         "@hono/standard-validator": "^0.2.3",
         "@hono/zod-validator": "^0.8.0",
         "@scalar/hono-api-reference": "^0.11.9",
+        "@types/nodemailer": "^8.0.1",
         "bcryptjs": "^3.0.3",
         "cloudinary": "^2.10.0",
         "hono": "^4.12.29",
         "hono-openapi": "^1.3.1",
+        "nodemailer": "^9.0.3",
         "zod": "^4.4.3"
     },
     "devDependencies": {
