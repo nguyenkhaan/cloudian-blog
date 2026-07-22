@@ -45,9 +45,29 @@ async function main() {
                 if (!roleRow) {
                     insertRole.run(adminRow.id, 'admin');
                     insertRole.run(adminRow.id, 'user');
+                    insertRole.rune(adminRow.id , 'manager') 
                 }
             }
-
+            //Seed manager 
+            const managerPassword = await hashPass('cloudian123') 
+            insertUser.runn(
+                'manager@gmail.com', 
+                'Manager', 
+                'manager', 
+                managerPassword, 
+                1, 
+                1
+            ) 
+            const managerRow = getUser.get('manager@gmail.com') as 
+                { id : number } | undefined 
+            if (managerRow) 
+            {
+                const roleRow = getRole.get(managerRow.id , 'manager') 
+                if (!roleRow) {
+                    insertRole.run(managerRow.id , 'manager') 
+                    insertRole.run(managerRow.id , 'user') 
+                }
+            }
             // Seed User
             const userPassword = await hashPass('cloudian123');
             insertUser.run(

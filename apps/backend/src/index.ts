@@ -14,6 +14,8 @@ import AuthRoute from '@/controller/auth.controller';
 import PostRoute from '@/controller/post.controller';
 import CollectionRoute from '@/controller/collection.controller';
 import TagRoute from '@/controller/tag.controller';
+import CommentRoute from '@/controller/comment.controller';
+import ReportRoute from '@/controller/report.controller';
 const app = new Hono<AppEnv>();
 app.use('*', databaseMiddleware);
 app.notFound((c: Context) => {
@@ -75,5 +77,7 @@ apiRoute.route('/auth', AuthRoute);
 apiRoute.route('/posts', PostRoute);
 apiRoute.route('/collections', CollectionRoute);
 apiRoute.route('/tags', TagRoute);
+apiRoute.route('/comments', CommentRoute);
+apiRoute.route('/reports', ReportRoute);
 app.route('/api', apiRoute);
 export default app;
