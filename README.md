@@ -20,6 +20,17 @@ The backend architecture is designed around **Hono** running on **Cloudflare Wor
 
 ---
 
+## 🛠️ Main Features & Modules
+
+- **Authentication & Roles Management:** Local signup/login, refresh token cycle, and custom role verification (ADMIN, MANAGER, USER).
+- **Post & Category Management:** Create and publish blog posts organized into custom tags and curated collections.
+- **Comment Section:** Support nested comments on published posts, validation logic, role authorization (ADMIN/MANAGER can update status or delete any comment; USER can only manage their own comments).
+- **Report Ticket System:** Submit reports for posts/comments/other content, track report statuses (pending, solved, cancel), and notify reporters when their tickets are updated.
+- **Subscriber Management:** Public endpoints for newsletter signups/opt-outs, and admin capabilities to send newsletters featuring recent posts or direct simple notifications.
+- **Type-safe Email Templates:** Mail transmission via `Nodemailer` using clean TypeScript function templates (solving `EvalError` runtime sandbox blocks on Cloudflare Workers).
+
+---
+
 ## 📊 Database Schema
 
 Below is the entity-relationship diagram representing the Drizzle schema configured for SQLite/D1:
@@ -32,6 +43,9 @@ erDiagram
     collection ||--o{ post_collection : "contains"
     post ||--o{ post_tag : "has"
     tag ||--o{ post_tag : "belongs to"
+    user ||--o{ comment : "writes"
+    post ||--o{ comment : "receives"
+    user ||--o{ report : "submits"
 
     user {
         integer id PK
@@ -79,14 +93,35 @@ erDiagram
 
     tag {
         integer id PK
-        integer name
-        integer slug
+        text name
+        text slug
     }
 
     post_tag {
         integer id PK
         integer tag_id FK
         integer post_id FK
+    }
+
+    comment {
+        integer id PK
+        text content
+        integer created_at
+        text status
+        integer user_id FK
+        integer post_id FK
+        integer updated_at
+    }
+
+    report {
+        integer id PK
+        text title
+        text content
+        integer user_id FK
+        integer created_at
+        text status
+        text entity
+        integer solved_at
     }
 
     subscriber {
@@ -155,7 +190,7 @@ Update [apps/backend/wrangler.jsonc](file:///home/cloud/workspace/web/blogging-w
 
 ### 5. Generate and Apply Database Migrations
 
-Create your initial database schema and tables by generating and applying migrations:
+Create your database schema and tables by generating and applying migrations:
 
 ```bash
 # Generate SQL migration files using Drizzle Kit
@@ -165,7 +200,18 @@ bun --cwd apps/backend x drizzle-kit generate
 bun --cwd apps/backend x wrangler d1 migrations apply blogging-database --local
 ```
 
-### 6. Start the Development Server
+### 6. Run Database Seeding
+
+Populate the database with rich test data (users, tags, posts, collections, comments, reports, subscribers):
+
+```bash
+# Delete existing sqlite files and run migrations & seeding from scratch
+rm -f apps/backend/.wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite*
+bun --cwd apps/backend x wrangler d1 migrations apply blogging-database --local
+bun --cwd apps/backend run seed
+```
+
+### 7. Start the Development Server
 
 Run the Hono application on a local development server:
 
@@ -178,7 +224,7 @@ The server will start running at `http://localhost:3000`.
 - **Scalar API Documentation:** [http://localhost:3000/scalar](http://localhost:3000/scalar)
 - **OpenAPI Spec Endpoint:** [http://localhost:3000/openapi](http://localhost:3000/openapi)
 
-### 7. Run Drizzle Studio (Optional)
+### 8. Run Drizzle Studio (Optional)
 
 To view and manage your local database tables visually, run Drizzle Studio:
 

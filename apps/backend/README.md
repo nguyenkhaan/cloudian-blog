@@ -22,6 +22,7 @@ This is the backend API service for **Cloudian Blog**, built as a serverless app
 - **Cloudflare D1:** Serverless SQL database (SQLite-based) with global replication.
 - **Drizzle ORM:** Lightweight, type-safe ORM for relational queries, modeling, and automated migrations.
 - **Zod & OpenAPI Integration:** Automatic request/response validation and interactive API documentation powered by **Scalar**.
+- **Type-safe Email Templates:** Mail transmission via `Nodemailer` using clean TypeScript function templates (solving `EvalError` runtime sandbox blocks on Cloudflare Workers).
 
 ---
 
@@ -35,6 +36,9 @@ erDiagram
     collection ||--o{ post_collection : "contains"
     post ||--o{ post_tag : "has"
     tag ||--o{ post_tag : "belongs to"
+    user ||--o{ comment : "writes"
+    post ||--o{ comment : "receives"
+    user ||--o{ report : "submits"
 
     user {
         integer id PK
@@ -82,14 +86,35 @@ erDiagram
 
     tag {
         integer id PK
-        integer name
-        integer slug
+        text name
+        text slug
     }
 
     post_tag {
         integer id PK
         integer tag_id FK
         integer post_id FK
+    }
+
+    comment {
+        integer id PK
+        text content
+        integer created_at
+        text status
+        integer user_id FK
+        integer post_id FK
+        integer updated_at
+    }
+
+    report {
+        integer id PK
+        text title
+        text content
+        integer user_id FK
+        integer created_at
+        text status
+        text entity
+        integer solved_at
     }
 
     subscriber {
@@ -139,6 +164,7 @@ Add the returned JSON configuration details to your `wrangler.jsonc` file:
       "database_id": "YOUR_DATABASE_ID"
     }
   ]
+}
 ```
 
 ### 4. Database Schema Migration
@@ -155,7 +181,18 @@ Then apply the migrations locally to initialize the SQLite database:
 bunx wrangler d1 migrations apply blogging-database --local
 ```
 
-### 5. Start Development Server
+### 5. Database Seeding
+
+Populate the database with test data:
+
+```bash
+# Delete existing sqlite files and run migrations & seeding from scratch
+rm -f .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite*
+bunx wrangler d1 migrations apply blogging-database --local
+bun run seed
+```
+
+### 6. Start Development Server
 
 Run the API locally (defaults to port `3000` via Wrangler):
 
@@ -166,7 +203,7 @@ bun run dev
 - **Interactive API Reference:** [http://localhost:3000/scalar](http://localhost:3000/scalar)
 - **OpenAPI Specs JSON:** [http://localhost:3000/openapi](http://localhost:3000/openapi)
 
-### 6. Query DB visually with Drizzle Studio
+### 7. Query DB visually with Drizzle Studio
 
 To view tables and manipulate data using a browser GUI, run:
 
