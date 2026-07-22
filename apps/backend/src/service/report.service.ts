@@ -1,5 +1,7 @@
 import { createDb } from '@/db';
 import { ReportModel, ReportStatus, ReportEntity, UserModel } from '@/model';
+import { MailService } from './mail.service';
+import { TemplateService } from './template.service';
 import {
     CreateReportDtoType,
     UpdateReportDtoType,
@@ -202,7 +204,9 @@ export async function deleteReport(
 export async function updateReportStatus(
     db: ReturnType<typeof createDb>,
     reportId: number,
-    status: ReportStatus
+    status: ReportStatus,
+    mailService: MailService,
+    resolutionNote?: string
 ) {
     try {
         const report = await db.query.ReportModel.findFirst({
@@ -224,6 +228,36 @@ export async function updateReportStatus(
                 solved_at: solvedAt,
             })
             .where(eq(ReportModel.id, reportId));
+
+        if (status === ReportStatus.SOLVED || status === ReportStatus.CANCEL) {
+            const user = await db.query.UserModel.findFirst({
+                where: eq(UserModel.id, report.userId),
+            });
+
+            if (user) {
+                const note = resolutionNote || (status === ReportStatus.SOLVED
+                    ? 'Your report has been successfully resolved.'
+                    : 'Your report has been closed.');
+
+                const html = TemplateService.reportSolve({
+                    name: user.name,
+                    reportId: reportId.toString(),
+                    reportTitle: report.title,
+                    status: status,
+                    resolutionNote: note,
+                });
+
+                try {
+                    await mailService.sendMail(
+                        user.email,
+                        `Cloudian Blog - Update on Report #${reportId}`,
+                        html
+                    );
+                } catch (mailError) {
+                    console.error(`Failed to send report status update email to ${user.email}:`, mailError);
+                }
+            }
+        }
 
         return {
             success: true,

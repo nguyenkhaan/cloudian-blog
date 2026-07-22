@@ -4,6 +4,7 @@ import { Role } from '@/model';
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
 import { describeRoute, validator } from 'hono-openapi';
+import { MailService } from '@/service/mail.service';
 import {
     CreateReportDto,
     UpdateReportDto,
@@ -136,8 +137,9 @@ route.post(
     async (c) => {
         const db = await c.get('db');
         const { reportId } = await c.req.valid('param');
-        const { status } = await c.req.valid('json');
-        const response = await updateReportStatus(db, reportId, status);
+        const { status, resolutionNote } = await c.req.valid('json');
+        const mailService = new MailService(c.env);
+        const response = await updateReportStatus(db, reportId, status, mailService, resolutionNote);
         return c.json(response);
     }
 );

@@ -15,6 +15,7 @@ import {
     REFRESH_TOKEN_LIVETIME,
     VERIFY_REGISTER,
     VERIFY_RESET_PASSWORD,
+    VERIFY_RESET_EMAIL,
 } from '@/base/jwt.constant';
 
 import { AuthProvider, OAuthModel, Role, UserRoleModel } from '@/model';
@@ -97,13 +98,12 @@ export async function register(
     db: ReturnType<typeof createDb>,
     data: RegisterDtoType,
     verifySecret: string, 
-    env : AppEnv['Bindings']
+    FE : string,
+    mailService: MailService
 ) {
     try {
         
         const validMinutes = VERIFY_REGISTER / 60
-        const FE = env.FE_URL
-        const mailService = new MailService(env) // Create email isntance - chac vay 
 
         const user = await db.query.UserModel.findFirst({
             where: and(
@@ -137,13 +137,12 @@ export async function register(
                     verifySecret
                 );
                 
-                //Create payload to send email 
                 const verificationUrl = `${FE}/verify?token=${verifyToken}`   //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend 
                 const name = user.name  
 
-                //Sending email 
                 const html = TemplateService.verifyRegister({ name , verificationUrl , validMinutes})
-                await mailService.sendEmail(user.email , 'Verify Register' , html)
+                await mailService.sendMail(user.email, 'Verify Your Account - Cloudian Blog', html);
+
                 return {
                     user,
                     verifyToken,
@@ -180,12 +179,10 @@ export async function register(
         );
         
         
-        // Create payload to send email 
         const verificationUrl = `${FE}/verify?token=${verifyToken}`   //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend 
         const name = newUser[0]?.name || '' 
-        //Sending email 
         const html = TemplateService.verifyRegister({ name , verificationUrl , validMinutes})
-        await mailService.sendEmail(newUser[0]?.email || '' , 'Verify Register' , html)
+        await mailService.sendMail(newUser[0]!.email, 'Verify Your Account - Cloudian Blog', html);
 
         return {
             user: newUser[0]!,
@@ -239,7 +236,9 @@ export async function verify(
 export async function forgotPassword(
     db: ReturnType<typeof createDb>,
     email: string,
-    secretKey: string
+    secretKey: string,
+    FE: string,
+    mailService: MailService
 ) {
     try {
         const user = await db
@@ -260,6 +259,16 @@ export async function forgotPassword(
             payload,
             secretKey
         );
+
+        const resetUrl = `${FE}/reset-password?token=${token}`;
+        const validMinutes = Math.floor(VERIFY_RESET_PASSWORD / 60);
+        const html = TemplateService.resetPassword({
+            name: user[0]!.name,
+            resetUrl,
+            validMinutes,
+        });
+        await mailService.sendMail(email, 'Reset Your Password - Cloudian Blog', html);
+
         return {
             token,
         };
@@ -302,7 +311,9 @@ export async function changeEmail(
     db: ReturnType<typeof createDb>,
     userId: number,
     data: ChangeEmailType,
-    secretKey: string
+    secretKey: string,
+    FE: string,
+    mailService: MailService
 ) {
     try {
         const user = await db.query.UserModel.findFirst({
@@ -312,19 +323,32 @@ export async function changeEmail(
             throw new HTTPException(404, {
                 message: 'User not found',
             });
-        if (!comparePass(data.password, user.password))
+        const isPasswordMatch = await comparePass(data.password, user.password);
+        if (!isPasswordMatch)
             throw new HTTPException(400, {
                 message: 'Wrong password',
             });
         const payload = {
             sub: user.id.toString(),
             email: data.email,
+            exp: Math.floor(Date.now() / 1000) + VERIFY_RESET_EMAIL,
         };
         const token = await createToken(
             TokenType.VERIFY_RESET_EMAIL,
             payload,
             secretKey
         );
+
+        const resetUrl = `${FE}/verify-email-change?token=${token}`;
+        const validMinutes = Math.floor(VERIFY_RESET_EMAIL / 60);
+        const html = TemplateService.resetEmail({
+            name: user.name,
+            newEmail: data.email,
+            resetUrl,
+            validMinutes,
+        });
+        await mailService.sendMail(data.email, 'Confirm Your Email Address Change - Cloudian Blog', html);
+
         return {
             token,
         };

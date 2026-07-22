@@ -1,6 +1,7 @@
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
 import { describeRoute, validator } from 'hono-openapi';
+import { MailService } from '@/service/mail.service';
 import {
     changeEmail,
     changePassword,
@@ -69,7 +70,8 @@ route.post(
         const data = await c.req.valid('json');
         const db = await c.get('db');
         const verifySecret = c.env.JWT_VERIFY_REGISTER;
-        const response = await register(db, data, verifySecret, c.env);
+        const mailService = new MailService(c.env);
+        const response = await register(db, data, verifySecret, c.env.FE_URL, mailService);
         return c.json(response);
     }
 );
@@ -103,7 +105,8 @@ route.get(
         const { email } = await c.req.valid('query');
         const db = await c.get('db');
         const secretKey = c.env.JWT_VERIFY_RESET_PASSWORD;
-        const response = await forgotPassword(db, email, secretKey);
+        const mailService = new MailService(c.env);
+        const response = await forgotPassword(db, email, secretKey, c.env.FE_URL, mailService);
         return c.json(response);
     }
 );
@@ -150,11 +153,14 @@ route.post(
         const user = await c.get('user');
         const data = await c.req.valid('json');
         const secretKey = c.env.JWT_VERIFY_RESET_EMAIL;
+        const mailService = new MailService(c.env);
         const response = await changeEmail(
             db,
             Number(user.sub),
             data,
-            secretKey
+            secretKey,
+            c.env.FE_URL,
+            mailService
         );
         return c.json(response);
     }

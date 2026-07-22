@@ -16,13 +16,14 @@ export type AppEnv = {
         CLOUDIANRY_CLOUD_NAME: string;
         CLOUDINARY_API_SECRET: string;
         CLOUDINARY_API_KEY: string;
-        SMTP_HOST: string; 
-        SMTP_PORT : string; 
-        SMTP_SECURE : string; 
-        SMTP_USERNAME : string;
-        SMTP_PASSWORD : string;
-        SMTP_FROM_NAME : string; 
-        SMTP_FROM_EMAIL : string 
+        //SMTP
+        SMTP_HOST?: string;
+        SMTP_PORT?: string;
+        SMTP_SECURE?: string;
+        SMTP_USERNAME?: string;
+        SMTP_PASSWORD?: string;
+        SMTP_FROM_NAME?: string;
+        SMTP_FROM_EMAIL?: string;
     };
     Variables: {
         db: ReturnType<typeof createDb>;

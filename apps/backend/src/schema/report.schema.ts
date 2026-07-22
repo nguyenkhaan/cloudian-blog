@@ -18,6 +18,7 @@ export const ReportIdParam = z.object({
 
 export const UpdateReportStatusDto = z.object({
     status: z.nativeEnum(ReportStatus).meta({ example: 'solved' }),
+    resolutionNote: z.string().optional().meta({ example: 'The content has been removed.' }),
 });
 
 export const GetAllReportsQuery = z.object({
