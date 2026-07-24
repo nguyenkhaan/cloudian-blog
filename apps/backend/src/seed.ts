@@ -76,34 +76,74 @@ async function main() {
         const userPassword = await hashPass('cloudian123');
 
         // Admin User
-        const adminResult = insertUser.run('admin@gmail.com', 'Admin User', 'admin', userPassword, 1, 1);
+        const adminResult = insertUser.run(
+            'admin@gmail.com',
+            'Admin User',
+            'admin',
+            userPassword,
+            1,
+            1
+        );
         const adminId = adminResult.lastInsertRowid;
         insertRole.run(adminId, 'admin');
         insertRole.run(adminId, 'manager');
         insertRole.run(adminId, 'user');
 
         // Manager User
-        const managerResult = insertUser.run('manager@gmail.com', 'Manager User', 'manager', userPassword, 1, 1);
+        const managerResult = insertUser.run(
+            'manager@gmail.com',
+            'Manager User',
+            'manager',
+            userPassword,
+            1,
+            1
+        );
         const managerId = managerResult.lastInsertRowid;
         insertRole.run(managerId, 'manager');
         insertRole.run(managerId, 'user');
 
         // Regular User
-        const normalUserResult = insertUser.run('user@gmail.com', 'Regular User', 'user', userPassword, 1, 1);
+        const normalUserResult = insertUser.run(
+            'user@gmail.com',
+            'Regular User',
+            'user',
+            userPassword,
+            1,
+            1
+        );
         const userId = normalUserResult.lastInsertRowid;
         insertRole.run(userId, 'user');
 
         // Reporter User
-        const reporterResult = insertUser.run('reporter@gmail.com', 'Reporter User', 'reporter', userPassword, 1, 1);
+        const reporterResult = insertUser.run(
+            'reporter@gmail.com',
+            'Reporter User',
+            'reporter',
+            userPassword,
+            1,
+            1
+        );
         const reporterId = reporterResult.lastInsertRowid;
         insertRole.run(reporterId, 'user');
 
         // 2. Seed Tags
         console.log('Seeding tags...');
-        const tagTech = insertTag.run('Technology', 'technology').lastInsertRowid;
-        const tagProg = insertTag.run('Programming', 'programming').lastInsertRowid;
-        const tagServerless = insertTag.run('Serverless', 'serverless').lastInsertRowid;
-        const tagHono = insertTag.run('Hono Framework', 'hono-framework').lastInsertRowid;
+        const tagTech = insertTag.run(
+            'Technology',
+            'technology'
+        ).lastInsertRowid;
+        const tagProg = insertTag.run(
+            'Programming',
+            'programming'
+        ).lastInsertRowid;
+        const tagServerless = insertTag.run(
+            'Serverless',
+            'serverless'
+        ).lastInsertRowid;
+        const tagHono = insertTag.run(
+            'Hono Framework',
+            'hono-framework'
+        ).lastInsertRowid;
 
         // 3. Seed Collections
         console.log('Seeding collections...');
@@ -217,9 +257,24 @@ async function main() {
 
         // 7. Seed Subscribers
         console.log('Seeding subscribers...');
-        insertSubscriber.run('subscriber.alice@example.com', 'Alice Smith', null, 'Subscribed via landing page');
-        insertSubscriber.run('subscriber.bob@example.com', 'Bob Johnson', null, 'Subscribed via footer');
-        insertSubscriber.run('charlie.unsubscribed@example.com', 'Charlie Brown', now, 'Unsubscribed on newsletter');
+        insertSubscriber.run(
+            'subscriber.alice@example.com',
+            'Alice Smith',
+            null,
+            'Subscribed via landing page'
+        );
+        insertSubscriber.run(
+            'subscriber.bob@example.com',
+            'Bob Johnson',
+            null,
+            'Subscribed via footer'
+        );
+        insertSubscriber.run(
+            'charlie.unsubscribed@example.com',
+            'Charlie Brown',
+            now,
+            'Unsubscribed on newsletter'
+        );
 
         console.log('Seeding completed successfully!');
         db.close();

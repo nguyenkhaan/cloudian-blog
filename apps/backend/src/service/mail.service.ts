@@ -18,7 +18,11 @@ export class MailService {
         this.from = `"${env.SMTP_FROM_NAME || 'Cloudian Blog'}" <${env.SMTP_FROM_EMAIL || 'noreply@cloudianblog.com'}>`;
     }
 
-    public async sendMail(to: string, subject: string, html: string): Promise<any> {
+    public async sendMail(
+        to: string,
+        subject: string,
+        html: string
+    ): Promise<any> {
         try {
             const info = await this.transporter.sendMail({
                 from: this.from,

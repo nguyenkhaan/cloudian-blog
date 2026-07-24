@@ -17,6 +17,7 @@ import TagRoute from '@/controller/tag.controller';
 import CommentRoute from '@/controller/comment.controller';
 import ReportRoute from '@/controller/report.controller';
 import SubscriberRoute from '@/controller/subscriber.controller';
+import ChatRoute from '@/controller/chat.controller';
 const app = new Hono<AppEnv>();
 app.use('*', databaseMiddleware);
 app.notFound((c: Context) => {
@@ -81,5 +82,6 @@ apiRoute.route('/tags', TagRoute);
 apiRoute.route('/comments', CommentRoute);
 apiRoute.route('/reports', ReportRoute);
 apiRoute.route('/subscribers', SubscriberRoute);
+apiRoute.route('/chat', ChatRoute);
 app.route('/api', apiRoute);
 export default app;

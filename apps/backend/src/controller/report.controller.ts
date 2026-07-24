@@ -24,7 +24,6 @@ import {
 const route = new Hono<AppEnv>();
 const tags = ['Report'];
 
-
 route.get(
     '/',
     AuthMiddleware,
@@ -32,7 +31,8 @@ route.get(
     describeRoute({
         tags,
         summary: 'Get all reports',
-        description: 'Get all reports in the system with optional status or entity type filters',
+        description:
+            'Get all reports in the system with optional status or entity type filters',
     }),
     validator('query', GetAllReportsQuery),
     async (c) => {
@@ -139,7 +139,13 @@ route.post(
         const { reportId } = await c.req.valid('param');
         const { status, resolutionNote } = await c.req.valid('json');
         const mailService = new MailService(c.env);
-        const response = await updateReportStatus(db, reportId, status, mailService, resolutionNote);
+        const response = await updateReportStatus(
+            db,
+            reportId,
+            status,
+            mailService,
+            resolutionNote
+        );
         return c.json(response);
     }
 );

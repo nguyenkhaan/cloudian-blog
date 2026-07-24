@@ -106,7 +106,7 @@ export async function createCollection(
                 message: 'Failed to create collection',
             });
         }
-        console.log("Hello collection") 
+        console.log('Hello collection');
         return {
             success: true,
             collectionId: created.id,

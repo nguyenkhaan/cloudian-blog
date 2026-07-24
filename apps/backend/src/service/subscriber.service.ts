@@ -29,7 +29,6 @@ export async function subscribe(
                     message: 'Email is already subscribed',
                 });
             } else {
-
                 await db
                     .update(SubscriberModel)
                     .set({
@@ -58,7 +57,6 @@ export async function subscribe(
             subscriberId = created.id;
         }
 
-
         const unsubscribeUrl = `${feUrl}/unsubscribe?email=${encodeURIComponent(data.email)}`;
         const html = TemplateService.subscriber({
             name: data.name,
@@ -67,9 +65,16 @@ export async function subscribe(
         });
 
         try {
-            await mailService.sendMail(data.email, 'Welcome to Cloudian Blog!', html);
+            await mailService.sendMail(
+                data.email,
+                'Welcome to Cloudian Blog!',
+                html
+            );
         } catch (mailError) {
-            console.error('Welcome email sending failed but subscription succeeded:', mailError);
+            console.error(
+                'Welcome email sending failed but subscription succeeded:',
+                mailError
+            );
         }
 
         return {
@@ -82,7 +87,10 @@ export async function subscribe(
     }
 }
 
-export async function unsubscribe(db: ReturnType<typeof createDb>, email: string) {
+export async function unsubscribe(
+    db: ReturnType<typeof createDb>,
+    email: string
+) {
     try {
         const subscriber = await db.query.SubscriberModel.findFirst({
             where: and(
@@ -199,7 +207,6 @@ export async function sendNewsletter(
             }
         }
 
-
         const sendPromises = subscribers.map(async (sub) => {
             const unsubscribeUrl = `${feUrl}/unsubscribe?email=${encodeURIComponent(sub.email)}`;
             const html = TemplateService.subscriber({
@@ -213,9 +220,6 @@ export async function sendNewsletter(
                 console.error(`Newsletter send error to ${sub.email}:`, err);
             }
         });
-
-
-
 
         await Promise.all(sendPromises);
 

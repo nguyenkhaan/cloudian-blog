@@ -2,11 +2,17 @@ import { CommentStatus } from '@/model';
 import { z } from 'zod';
 
 export const CreateCommentDto = z.object({
-    content: z.string().min(1, 'Comment content cannot be empty').meta({ example: 'This is an awesome blog post!' }),
+    content: z
+        .string()
+        .min(1, 'Comment content cannot be empty')
+        .meta({ example: 'This is an awesome blog post!' }),
 });
 
 export const UpdateCommentDto = z.object({
-    content: z.string().min(1, 'Comment content cannot be empty').meta({ example: 'This is an updated comment content!' }),
+    content: z
+        .string()
+        .min(1, 'Comment content cannot be empty')
+        .meta({ example: 'This is an updated comment content!' }),
 });
 
 export const CommentIdParam = z.object({

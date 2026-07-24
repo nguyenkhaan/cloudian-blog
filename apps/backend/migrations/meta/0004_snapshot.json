@@ -1,8 +1,8 @@
 {
     "version": "6",
     "dialect": "sqlite",
-    "id": "ce8740b8-eb03-48a6-9966-a1a204e3f1b1",
-    "prevId": "eeeecd89-ddcc-40f6-a79d-03e779cce10f",
+    "id": "94194c08-3a99-4f94-bdfa-bc3ec2b0abab",
+    "prevId": "028790a1-f2db-417e-abc0-6f592ee319c8",
     "tables": {
         "chat_message": {
             "name": "chat_message",
@@ -28,9 +28,16 @@
                     "notNull": false,
                     "autoincrement": false
                 },
+                "role": {
+                    "name": "role",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "autoincrement": false
+                },
                 "chat_session_id": {
                     "name": "chat_session_id",
-                    "type": "text",
+                    "type": "integer",
                     "primaryKey": false,
                     "notNull": true,
                     "autoincrement": false
@@ -44,13 +51,7 @@
                     "default": "(strftime('%s', 'now') * 1000)"
                 }
             },
-            "indexes": {
-                "chat_message_chat_session_id_unique": {
-                    "name": "chat_message_chat_session_id_unique",
-                    "columns": ["chat_session_id"],
-                    "isUnique": true
-                }
-            },
+            "indexes": {},
             "foreignKeys": {
                 "chat_message_user_id_user_id_fk": {
                     "name": "chat_message_user_id_user_id_fk",
@@ -92,6 +93,13 @@
                     "notNull": true,
                     "autoincrement": false
                 },
+                "user_id": {
+                    "name": "user_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false
+                },
                 "message_count": {
                     "name": "message_count",
                     "type": "integer",
@@ -108,7 +116,17 @@
                     "isUnique": true
                 }
             },
-            "foreignKeys": {},
+            "foreignKeys": {
+                "chat_session_user_id_user_id_fk": {
+                    "name": "chat_session_user_id_user_id_fk",
+                    "tableFrom": "chat_session",
+                    "tableTo": "user",
+                    "columnsFrom": ["user_id"],
+                    "columnsTo": ["id"],
+                    "onDelete": "no action",
+                    "onUpdate": "no action"
+                }
+            },
             "compositePrimaryKeys": {},
             "uniqueConstraints": {},
             "checkConstraints": {}
@@ -667,6 +685,38 @@
                     "onUpdate": "no action"
                 }
             },
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "checkConstraints": {}
+        },
+        "auth_provider": {
+            "name": "auth_provider",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "integer",
+                    "primaryKey": true,
+                    "notNull": true,
+                    "autoincrement": true
+                },
+                "user_id": {
+                    "name": "user_id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "autoincrement": false
+                },
+                "status": {
+                    "name": "status",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false,
+                    "default": "'local'"
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {},
             "compositePrimaryKeys": {},
             "uniqueConstraints": {},
             "checkConstraints": {}

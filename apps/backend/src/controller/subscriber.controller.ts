@@ -99,14 +99,20 @@ route.post(
     describeRoute({
         tags,
         summary: 'Broadcast newsletter',
-        description: 'Broadcast newsletter template with recent posts list to all active subscribers',
+        description:
+            'Broadcast newsletter template with recent posts list to all active subscribers',
     }),
     validator('json', SendNewsletterDto),
     async (c) => {
         const db = await c.get('db');
         const mailService = new MailService(c.env);
         const data = await c.req.valid('json');
-        const response = await sendNewsletter(db, mailService, data, c.env.FE_URL);
+        const response = await sendNewsletter(
+            db,
+            mailService,
+            data,
+            c.env.FE_URL
+        );
         return c.json(response);
     }
 );

@@ -176,7 +176,7 @@ route.put(
 route.delete(
     '/:postId',
     AuthMiddleware,
-    requireRole(Role.MANAGER), 
+    requireRole(Role.MANAGER),
     describeRoute({
         tags,
         summary: 'Delete post',
@@ -222,7 +222,7 @@ route.patch(
 route.put(
     '/:postId/collections',
     AuthMiddleware,
-    requireRole(Role.MANAGER), 
+    requireRole(Role.MANAGER),
     describeRoute({
         tags,
         summary: 'Save post to collections',
@@ -253,7 +253,7 @@ route.put(
 route.put(
     '/:postId/tags',
     AuthMiddleware,
-    requireRole(Role.MANAGER), 
+    requireRole(Role.MANAGER),
     describeRoute({
         tags,
         summary: 'Save post tags',

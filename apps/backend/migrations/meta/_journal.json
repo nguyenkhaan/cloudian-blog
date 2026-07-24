@@ -1,34 +1,41 @@
 {
-  "version": "7",
-  "dialect": "sqlite",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "6",
-      "when": 1784014125548,
-      "tag": "0000_tired_power_pack",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1784472993909,
-      "tag": "0001_short_forge",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1784714143593,
-      "tag": "0002_curious_thunderbolt_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1784732007495,
-      "tag": "0003_shiny_wallflower",
-      "breakpoints": true
-    }
-  ]
+    "version": "7",
+    "dialect": "sqlite",
+    "entries": [
+        {
+            "idx": 0,
+            "version": "6",
+            "when": 1784014125548,
+            "tag": "0000_tired_power_pack",
+            "breakpoints": true
+        },
+        {
+            "idx": 1,
+            "version": "6",
+            "when": 1784472993909,
+            "tag": "0001_short_forge",
+            "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "6",
+            "when": 1784714143593,
+            "tag": "0002_curious_thunderbolt_ross",
+            "breakpoints": true
+        },
+        {
+            "idx": 3,
+            "version": "6",
+            "when": 1784732007495,
+            "tag": "0003_shiny_wallflower",
+            "breakpoints": true
+        },
+        {
+            "idx": 4,
+            "version": "6",
+            "when": 1784902344267,
+            "tag": "0004_large_nemesis",
+            "breakpoints": true
+        }
+    ]
 }

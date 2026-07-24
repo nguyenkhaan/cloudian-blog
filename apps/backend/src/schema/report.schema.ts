@@ -2,14 +2,28 @@ import { ReportEntity, ReportStatus } from '@/model';
 import { z } from 'zod';
 
 export const CreateReportDto = z.object({
-    title: z.string().min(1, 'Title is required').meta({ example: 'Inappropriate content' }),
-    content: z.string().min(1, 'Content is required').meta({ example: 'This post contains offensive language.' }),
+    title: z
+        .string()
+        .min(1, 'Title is required')
+        .meta({ example: 'Inappropriate content' }),
+    content: z
+        .string()
+        .min(1, 'Content is required')
+        .meta({ example: 'This post contains offensive language.' }),
     entity: z.nativeEnum(ReportEntity).meta({ example: 'post' }),
 });
 
 export const UpdateReportDto = z.object({
-    title: z.string().min(1, 'Title is required').optional().meta({ example: 'Updated title' }),
-    content: z.string().min(1, 'Content is required').optional().meta({ example: 'Updated content description' }),
+    title: z
+        .string()
+        .min(1, 'Title is required')
+        .optional()
+        .meta({ example: 'Updated title' }),
+    content: z
+        .string()
+        .min(1, 'Content is required')
+        .optional()
+        .meta({ example: 'Updated content description' }),
 });
 
 export const ReportIdParam = z.object({
@@ -18,7 +32,10 @@ export const ReportIdParam = z.object({
 
 export const UpdateReportStatusDto = z.object({
     status: z.nativeEnum(ReportStatus).meta({ example: 'solved' }),
-    resolutionNote: z.string().optional().meta({ example: 'The content has been removed.' }),
+    resolutionNote: z
+        .string()
+        .optional()
+        .meta({ example: 'The content has been removed.' }),
 });
 
 export const GetAllReportsQuery = z.object({

@@ -14,10 +14,11 @@ export const UserRelations = relations(UserModel, ({ one, many }) => {
     return {
         roles: many(UserRoleModel),
         posts: many(PostModel),
-        reports : many(ReportModel), 
-        messages : many(ChatMessageModel), 
-        comments: many(CommentModel), 
-        oauths: many(OAuthModel)
+        reports: many(ReportModel),
+        messages: many(ChatMessageModel),
+        sessions: many(ChatSessionModel),
+        comments: many(CommentModel),
+        oauths: many(OAuthModel),
     };
 });
 
@@ -38,7 +39,7 @@ export const PostRelations = relations(PostModel, ({ one, many }) => {
         }),
         postCollections: many(PostCollectionModel),
         postTags: many(PostTagModel),
-        comments: many(CommentModel)
+        comments: many(CommentModel),
     };
 });
 
@@ -89,68 +90,62 @@ export const TagCollectionRelations = relations(
     }
 );
 
-export const ReportRelations = relations(
-    ReportModel, 
-    ({ one , many}) => {
-        return {
-            user: one(UserModel , {
-                fields: [ReportModel.userId], 
-                references: [UserModel.id]
-            })
-        }
-    }
-)
+export const ReportRelations = relations(ReportModel, ({ one, many }) => {
+    return {
+        user: one(UserModel, {
+            fields: [ReportModel.userId],
+            references: [UserModel.id],
+        }),
+    };
+});
 
 export const ChatMessageRelations = relations(
-    ChatMessageModel, 
-    ({one , many}) => {
+    ChatMessageModel,
+    ({ one, many }) => {
         return {
-            user : one(UserModel , {
-                fields: [ChatMessageModel.userId], 
-                references : [UserModel.id]
-            }), 
-            session: one(ChatSessionModel , {
-                fields : [ChatMessageModel.sessionId], 
-                references: [ChatSessionModel.id]
-            })
-        }
-
+            user: one(UserModel, {
+                fields: [ChatMessageModel.userId],
+                references: [UserModel.id],
+            }),
+            session: one(ChatSessionModel, {
+                fields: [ChatMessageModel.sessionId],
+                references: [ChatSessionModel.id],
+            }),
+        };
     }
-)
+);
 
 export const ChatSessionRelations = relations(
-    ChatSessionModel, 
-    ({ one , many }) => {
+    ChatSessionModel,
+    ({ one, many }) => {
         return {
-            messages : many(ChatMessageModel)
-        }
+            messages: many(ChatMessageModel),
+            user: one(UserModel, {
+                fields: [ChatSessionModel.userId],
+                references: [UserModel.id],
+            }),
+        };
     }
-)
+);
 
-export const CommentRelations = relations(
-    CommentModel, 
-    ({ one , many }) => {
-        return {
-            post: one(PostModel , {
-                fields: [CommentModel.postId], 
-                references : [PostModel.id]
-            }), 
-            user: one(UserModel , {
-                fields: [CommentModel.userId], 
-                references: [UserModel.id]
-            })
-        }
-    }
-)
+export const CommentRelations = relations(CommentModel, ({ one, many }) => {
+    return {
+        post: one(PostModel, {
+            fields: [CommentModel.postId],
+            references: [PostModel.id],
+        }),
+        user: one(UserModel, {
+            fields: [CommentModel.userId],
+            references: [UserModel.id],
+        }),
+    };
+});
 
-export const OAuthProviderRelations = relations(
-    OAuthModel, 
-    ({ one , many }) => {
-        return {
-            user: one(UserModel , {
-                fields: [OAuthModel.userId], 
-                references : [UserModel.id]
-            })
-        }
-    }
-)
+export const OAuthProviderRelations = relations(OAuthModel, ({ one, many }) => {
+    return {
+        user: one(UserModel, {
+            fields: [OAuthModel.userId],
+            references: [UserModel.id],
+        }),
+    };
+});

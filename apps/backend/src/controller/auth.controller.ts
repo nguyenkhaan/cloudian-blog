@@ -58,8 +58,8 @@ route.post(
 
 route.post(
     '/register',
-    AuthMiddleware, 
-    requireRole(Role.ADMIN), //Chi co admin moi duoc quyen truy cap va dang ky tai khoan cho nguoi dung 
+    AuthMiddleware,
+    requireRole(Role.ADMIN), //Chi co admin moi duoc quyen truy cap va dang ky tai khoan cho nguoi dung
     describeRoute({
         summary: 'Register',
         tags,
@@ -71,7 +71,13 @@ route.post(
         const db = await c.get('db');
         const verifySecret = c.env.JWT_VERIFY_REGISTER;
         const mailService = new MailService(c.env);
-        const response = await register(db, data, verifySecret, c.env.FE_URL, mailService);
+        const response = await register(
+            db,
+            data,
+            verifySecret,
+            c.env.FE_URL,
+            mailService
+        );
         return c.json(response);
     }
 );
@@ -106,21 +112,28 @@ route.get(
         const db = await c.get('db');
         const secretKey = c.env.JWT_VERIFY_RESET_PASSWORD;
         const mailService = new MailService(c.env);
-        const response = await forgotPassword(db, email, secretKey, c.env.FE_URL, mailService);
+        const response = await forgotPassword(
+            db,
+            email,
+            secretKey,
+            c.env.FE_URL,
+            mailService
+        );
         return c.json(response);
     }
 );
 
-route.post('/login-google' , describeRoute({
-    tags, 
-    summary: "Login google", 
-    description: "Use for login google for user"
-}) , 
+route.post(
+    '/login-google',
+    describeRoute({
+        tags,
+        summary: 'Login google',
+        description: 'Use for login google for user',
+    }),
     async (c) => {
-        return c.text("Login google successfully") 
+        return c.text('Login google successfully');
     }
-
-)
+);
 route.post(
     '/change-password',
     describeRoute({
@@ -199,6 +212,5 @@ route.post(
         return c.json(response);
     }
 );
-
 
 export default route;

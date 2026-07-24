@@ -1,5 +1,12 @@
 import { createDb } from '@/db';
-import { CommentModel, CommentStatus, PostModel, PostStatus, UserModel, Role } from '@/model';
+import {
+    CommentModel,
+    CommentStatus,
+    PostModel,
+    PostStatus,
+    UserModel,
+    Role,
+} from '@/model';
 import {
     CreateCommentDtoType,
     UpdateCommentDtoType,
@@ -15,7 +22,6 @@ export async function createComment(
     data: CreateCommentDtoType
 ) {
     try {
-
         const post = await db.query.PostModel.findFirst({
             where: and(
                 eq(PostModel.id, postId),
@@ -177,7 +183,8 @@ export async function deleteComment(
         }
 
         const isOwner = comment.userId === userId;
-        const isAdminOrManager = userRoles.includes(Role.ADMIN) || userRoles.includes(Role.MANAGER);
+        const isAdminOrManager =
+            userRoles.includes(Role.ADMIN) || userRoles.includes(Role.MANAGER);
 
         if (!isOwner && !isAdminOrManager) {
             throw new HTTPException(403, {

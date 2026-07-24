@@ -51,16 +51,19 @@ export async function login(
             });
         const userRoles = user.roles.map((rrole) => rrole.role);
 
-        //Store information toe the oatuh provider 
+        //Store information toe the oatuh provider
         const oauth = await db.query.OAuthModel.findFirst({
-            where: and(eq(OAuthModel.userId , user.id) ,  eq(OAuthModel.provider , AuthProvider.LOCAL) ), 
-            columns: {id : true }
-        })
+            where: and(
+                eq(OAuthModel.userId, user.id),
+                eq(OAuthModel.provider, AuthProvider.LOCAL)
+            ),
+            columns: { id: true },
+        });
         if (!oauth) {
             await db.insert(OAuthModel).values({
-                userId: user.id, 
-                provider: AuthProvider.LOCAL
-            })
+                userId: user.id,
+                provider: AuthProvider.LOCAL,
+            });
         }
 
         const payload = {
@@ -86,7 +89,7 @@ export async function login(
         return {
             accessToken,
             refreshToken,
-            provider: AuthProvider.LOCAL
+            provider: AuthProvider.LOCAL,
         };
     } catch (err) {
         console.log('login error: ', err);
@@ -97,13 +100,12 @@ export async function login(
 export async function register(
     db: ReturnType<typeof createDb>,
     data: RegisterDtoType,
-    verifySecret: string, 
-    FE : string,
+    verifySecret: string,
+    FE: string,
     mailService: MailService
 ) {
     try {
-        
-        const validMinutes = VERIFY_REGISTER / 60
+        const validMinutes = VERIFY_REGISTER / 60;
 
         const user = await db.query.UserModel.findFirst({
             where: and(
@@ -113,12 +115,11 @@ export async function register(
             columns: {
                 id: true,
                 active: true,
-                name : true, 
+                name: true,
                 approve: true,
                 email: true,
             },
         });
-
 
         if (user) {
             if (user.active)
@@ -136,12 +137,20 @@ export async function register(
                     payload,
                     verifySecret
                 );
-                
-                const verificationUrl = `${FE}/verify?token=${verifyToken}`   //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend 
-                const name = user.name  
 
-                const html = TemplateService.verifyRegister({ name , verificationUrl , validMinutes})
-                await mailService.sendMail(user.email, 'Verify Your Account - Cloudian Blog', html);
+                const verificationUrl = `${FE}/verify?token=${verifyToken}`; //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend
+                const name = user.name;
+
+                const html = TemplateService.verifyRegister({
+                    name,
+                    verificationUrl,
+                    validMinutes,
+                });
+                await mailService.sendMail(
+                    user.email,
+                    'Verify Your Account - Cloudian Blog',
+                    html
+                );
 
                 return {
                     user,
@@ -177,12 +186,19 @@ export async function register(
             payload,
             verifySecret
         );
-        
-        
-        const verificationUrl = `${FE}/verify?token=${verifyToken}`   //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend 
-        const name = newUser[0]?.name || '' 
-        const html = TemplateService.verifyRegister({ name , verificationUrl , validMinutes})
-        await mailService.sendMail(newUser[0]!.email, 'Verify Your Account - Cloudian Blog', html);
+
+        const verificationUrl = `${FE}/verify?token=${verifyToken}`; //Gui ve va ben fe se tien hanh tach token ra, sau do quang token nay ve cho backend
+        const name = newUser[0]?.name || '';
+        const html = TemplateService.verifyRegister({
+            name,
+            verificationUrl,
+            validMinutes,
+        });
+        await mailService.sendMail(
+            newUser[0]!.email,
+            'Verify Your Account - Cloudian Blog',
+            html
+        );
 
         return {
             user: newUser[0]!,
@@ -223,7 +239,7 @@ export async function verify(
             .where(eq(UserModel.id, id));
         //Assign roles
         await db.insert(UserRoleModel).values({
-            role: Role.MANAGER,   //Nguoi dung user thi moi co the tien hanh dang ky 
+            role: Role.MANAGER, //Nguoi dung user thi moi co the tien hanh dang ky
             userId: user.id,
         });
         return 'User account has been active';
@@ -267,7 +283,11 @@ export async function forgotPassword(
             resetUrl,
             validMinutes,
         });
-        await mailService.sendMail(email, 'Reset Your Password - Cloudian Blog', html);
+        await mailService.sendMail(
+            email,
+            'Reset Your Password - Cloudian Blog',
+            html
+        );
 
         return {
             token,
@@ -347,7 +367,11 @@ export async function changeEmail(
             resetUrl,
             validMinutes,
         });
-        await mailService.sendMail(data.email, 'Confirm Your Email Address Change - Cloudian Blog', html);
+        await mailService.sendMail(
+            data.email,
+            'Confirm Your Email Address Change - Cloudian Blog',
+            html
+        );
 
         return {
             token,

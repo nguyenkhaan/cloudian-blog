@@ -99,7 +99,13 @@ route.patch(
         const userRoles = user.roles || [];
         const { commentId } = await c.req.valid('param');
         const data = await c.req.valid('json');
-        const response = await updateComment(db, userId, commentId, data, userRoles);
+        const response = await updateComment(
+            db,
+            userId,
+            commentId,
+            data,
+            userRoles
+        );
         return c.json(response);
     }
 );
@@ -132,7 +138,8 @@ route.get(
     describeRoute({
         tags,
         summary: 'Get all comments',
-        description: 'Admin/Manager view to fetch all comments in the system with optional filters',
+        description:
+            'Admin/Manager view to fetch all comments in the system with optional filters',
     }),
     validator('query', GetAllCommentsQuery),
     async (c) => {
@@ -150,7 +157,8 @@ route.put(
     describeRoute({
         tags,
         summary: 'Update comment status',
-        description: 'Admin/Manager capability to mark comments as active or invalid',
+        description:
+            'Admin/Manager capability to mark comments as active or invalid',
     }),
     validator('param', CommentIdParam),
     validator('json', UpdateCommentStatusDto),

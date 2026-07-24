@@ -235,9 +235,11 @@ export async function updateReportStatus(
             });
 
             if (user) {
-                const note = resolutionNote || (status === ReportStatus.SOLVED
-                    ? 'Your report has been successfully resolved.'
-                    : 'Your report has been closed.');
+                const note =
+                    resolutionNote ||
+                    (status === ReportStatus.SOLVED
+                        ? 'Your report has been successfully resolved.'
+                        : 'Your report has been closed.');
 
                 const html = TemplateService.reportSolve({
                     name: user.name,
@@ -254,7 +256,10 @@ export async function updateReportStatus(
                         html
                     );
                 } catch (mailError) {
-                    console.error(`Failed to send report status update email to ${user.email}:`, mailError);
+                    console.error(
+                        `Failed to send report status update email to ${user.email}:`,
+                        mailError
+                    );
                 }
             }
         }
