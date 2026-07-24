@@ -435,3 +435,134 @@ export async function refresh(
         throw err;
     }
 }
+
+export async function loginGoogle(
+    db: ReturnType<typeof createDb>,
+    idToken: string,
+    accessSecret: string,
+    refreshSecret: string
+) {
+    try {
+        const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+        if (!response.ok) {
+            throw new HTTPException(400, {
+                message: 'Invalid Google token',
+            });
+        }
+        const tokenInfo = await response.json() as {
+            sub: string;
+            email: string;
+            name: string;
+            email_verified: string | boolean;
+        };
+
+        if (!tokenInfo.email || (tokenInfo.email_verified !== 'true' && tokenInfo.email_verified !== true)) {
+            throw new HTTPException(400, {
+                message: 'Google email is not verified',
+            });
+        }
+
+        const dbUser = await db.query.UserModel.findFirst({
+            where: eq(UserModel.email, tokenInfo.email),
+            with: {
+                roles: true,
+            },
+        });
+
+        let id: number;
+        let email: string;
+        let name: string;
+        let roles: Role[];
+
+        if (!dbUser) {
+            const placeholderPassword = crypto.randomUUID();
+            const hashPwd = await hashPass(placeholderPassword);
+            const newUser = await db
+                .insert(UserModel)
+                .values({
+                    email: tokenInfo.email,
+                    password: hashPwd,
+                    name: tokenInfo.name || tokenInfo.email.split('@')[0] || 'User',
+                    active: 1,
+                    approve: 1,
+                })
+                .returning({
+                    id: UserModel.id,
+                    email: UserModel.email,
+                    name: UserModel.name,
+                });
+
+            id = newUser[0]!.id;
+            email = newUser[0]!.email;
+            name = newUser[0]!.name;
+            roles = [Role.USER];
+
+            await db.insert(UserRoleModel).values({
+                userId: id,
+                role: Role.USER,
+            });
+
+            await db.insert(OAuthModel).values({
+                userId: id,
+                provider: AuthProvider.GOOGLE,
+            });
+        } else {
+            id = dbUser.id;
+            email = dbUser.email;
+            name = dbUser.name;
+            roles = dbUser.roles.map((r) => r.role);
+
+            const oauth = await db.query.OAuthModel.findFirst({
+                where: and(
+                    eq(OAuthModel.userId, dbUser.id),
+                    eq(OAuthModel.provider, AuthProvider.GOOGLE)
+                ),
+            });
+            if (!oauth) {
+                await db.insert(OAuthModel).values({
+                    userId: dbUser.id,
+                    provider: AuthProvider.GOOGLE,
+                });
+            }
+        }
+
+        const payload = {
+            sub: id.toString(),
+            roles: roles,
+        };
+
+        const accessToken = await createToken(
+            TokenType.ACCESS_TOKEN,
+            {
+                ...payload,
+                exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_LIVETIME,
+            },
+            accessSecret
+        );
+
+        const refreshToken = await createToken(
+            TokenType.REFRESH_TOKEN,
+            {
+                ...payload,
+                exp: Math.floor(Date.now() / 1000) + REFRESH_TOKEN_LIVETIME,
+            },
+            refreshSecret
+        );
+
+        return {
+            accessToken,
+            refreshToken,
+            provider: AuthProvider.GOOGLE,
+            user: {
+                id,
+                email,
+                name,
+                roles,
+            }
+        };
+    } catch (err) {
+        console.log('Google login error: ', err);
+        throw err;
+    }
+}
+

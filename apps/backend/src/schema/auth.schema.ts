@@ -57,8 +57,13 @@ export const VerifyChangeEmailDto = z.object({
 export const RefreshDto = z.object({
     token: z.string(),
 });
+
+export const LoginGoogleDto = z.object({
+    idToken: z.string().min(1, 'Google ID token is required'),
+});
+
 export type ChangeEmailType = z.infer<typeof ChangeEmailDto>;
 export type ChangePasswordType = z.infer<typeof ChangePasswordDto>;
 export type RegisterDtoType = z.infer<typeof RegisterDto>;
-
 export type LoginDtoType = z.infer<typeof LoginDto>;
+export type LoginGoogleDtoType = z.infer<typeof LoginGoogleDto>;

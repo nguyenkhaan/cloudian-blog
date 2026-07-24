@@ -7,6 +7,7 @@ import {
     changePassword,
     forgotPassword,
     login,
+    loginGoogle,
     refresh,
     register,
     verify,
@@ -18,6 +19,7 @@ import {
     ChangePasswordQuery,
     ForgotPasswordQuery,
     LoginDto,
+    LoginGoogleDto,
     RefreshDto,
     RegisterDto,
     VerifyChangeEmailDto,
@@ -128,10 +130,21 @@ route.post(
     describeRoute({
         tags,
         summary: 'Login google',
-        description: 'Use for login google for user',
+        description: 'Verify Google idToken, register user on-the-fly and return JWT access/refresh tokens.',
     }),
+    validator('json', LoginGoogleDto),
     async (c) => {
-        return c.text('Login google successfully');
+        const db = await c.get('db');
+        const accessSecret = c.env.JWT_ACCESS_SECRET;
+        const refreshSecret = c.env.JWT_REFRESH_SECRET;
+        const { idToken } = await c.req.valid('json');
+        const response = await loginGoogle(
+            db,
+            idToken,
+            accessSecret,
+            refreshSecret
+        );
+        return c.json(response);
     }
 );
 route.post(
