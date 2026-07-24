@@ -5,6 +5,7 @@ export const CreateChatSessionDto = z.object({}).optional();
 export const SendMessageDto = z.object({
     sessionCode: z.string().min(1, 'Session code is required'),
     content: z.string().min(1, 'Message content cannot be empty'),
+    activePostId: z.number().optional(),
 });
 
 export const ChatSessionCodeParam = z.object({

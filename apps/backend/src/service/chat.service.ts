@@ -1,7 +1,7 @@
 import { createDb } from '@/db';
-import { ChatMessageModel, ChatSessionModel } from '@/model';
+import { ChatMessageModel, ChatSessionModel, PostModel } from '@/model';
 import { buildAgent } from '@/agent/llm';
-import { HumanMessage, AIMessage } from 'langchain';
+import { HumanMessage, AIMessage, SystemMessage } from 'langchain';
 import { eq, and, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { validateUserQuery, truncateUserQuery } from '@/helper/chat.security';
@@ -102,10 +102,10 @@ export async function sendChatMessage(
     db: ReturnType<typeof createDb>,
     sessionCode: string,
     content: string,
-    userId?: number
+    userId?: number,
+    activePostId?: number
 ) {
     try {
-        // 1. Find session
         const session = await db.query.ChatSessionModel.findFirst({
             where: eq(ChatSessionModel.code, sessionCode),
         });
@@ -145,33 +145,48 @@ export async function sendChatMessage(
             .limit(10)
             .orderBy(sql`${ChatMessageModel.createdAt} ASC`);
 
-        const langchainMessages = messagesFromDb.map((msg) => {
-            if (msg.role === 'user') {
-                return new HumanMessage(msg.content);
-            } else {
-                let content = msg.content;
-                if (content.startsWith('[') && content.endsWith(']')) {
-                    try {
-                        const parsed = JSON.parse(content);
-                        if (Array.isArray(parsed)) {
-                            const textBlocks = parsed.filter((block: any) => block && block.type === 'text');
-                            content = textBlocks.map((block: any) => block.text).join('\n');
-                        }
-                    } catch {
-                        // ignore and use raw string
-                    }
-                }
-                return new AIMessage(content);
+        let contextMessage: SystemMessage | null = null;
+        if (activePostId) {
+            const post = await db.query.PostModel.findFirst({
+                where: eq(PostModel.id, activePostId),
+            });
+            if (post) {
+                contextMessage = new SystemMessage(
+                    `USER CONTEXT: The user is currently reading the blog post titled "${post.title}" (ID: ${post.id}, Slug: ${post.slug}). ` +
+                    `If the user refers to "this post", "this article", "bài viết này", "bài blog này", or asks questions about what they are reading, ` +
+                    `you should base your answers on this post. You can use your tools to fetch more details about this postId if needed.`
+                );
             }
-        });
+        }
 
-        // 5. Build agent and invoke
+        const langchainMessages = [
+            ...(contextMessage ? [contextMessage] : []),
+            ...messagesFromDb.map((msg) => {
+                if (msg.role === 'user') {
+                    return new HumanMessage(msg.content);
+                } else {
+                    let content = msg.content;
+                    if (content.startsWith('[') && content.endsWith(']')) {
+                        try {
+                            const parsed = JSON.parse(content);
+                            if (Array.isArray(parsed)) {
+                                const textBlocks = parsed.filter((block: any) => block && block.type === 'text');
+                                content = textBlocks.map((block: any) => block.text).join('\n');
+                            }
+                        } catch {
+                            // no-op
+                        }
+                    }
+                    return new AIMessage(content);
+                }
+            })
+        ];
+
         const agent = buildAgent(db);
         const agentResult = await agent.invoke({
             messages: langchainMessages,
         });
 
-        // 6. Extract reply
         const replyMessage =
             agentResult.messages[agentResult.messages.length - 1];
         if (!replyMessage) {

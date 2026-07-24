@@ -100,13 +100,14 @@ route.post(
     validator('json', SendMessageDto),
     async (c) => {
         const db = await c.get('db');
-        const { sessionCode, content } = await c.req.valid('json');
+        const { sessionCode, content, activePostId } = await c.req.valid('json');
         const userId = await getOptionalUser(c);
         const response = await sendChatMessage(
             db,
             sessionCode,
             content,
-            userId
+            userId,
+            activePostId
         );
         return c.json(response, 201);
     }

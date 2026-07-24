@@ -9,7 +9,9 @@ import { getAllCollections, getCollectionDetails } from '@/service/collection.se
 import { getAllTags } from '@/service/tag.service';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-
+import soulSkill from '../skills/soul.md'
+import searchSkill from '../skills/search.md'
+import researchSkill from '../skills/research.md'
 export const agentTools = (db: ReturnType<typeof createDb>) => {
     // Search post tool
     const searchPost = tool(
@@ -119,7 +121,25 @@ export const agentTools = (db: ReturnType<typeof createDb>) => {
             }),
         }
     );
-
+    const fetchSkills = tool(
+        async ({ skillName }) => {
+            switch (skillName) {
+                case 'soul':
+                    return soulSkill
+                case 'search':
+                    return searchSkill
+                case 'research':
+                    return researchSkill
+            }
+        },
+        {
+            name: 'fetch_skill_guideline',
+            description: 'Retrieve operational guidelines (instructions) for specialized tasks: research (synthesis/citations), search (query expansion/filters), or soul (adaptive style/learning from corrections). Call this tool before executing a complex task to ensure accuracy',
+            schema: z.object({
+                skillName: z.enum(['soul', 'search', 'research']).describe('The name of the skill to fetch guideline for agent')
+            })
+        }
+    )
     return [
         searchPost,
         listPosts,
@@ -128,6 +148,7 @@ export const agentTools = (db: ReturnType<typeof createDb>) => {
         listCollections,
         listTags,
         getPostsByCollection,
+        fetchSkills
     ];
 };
 
