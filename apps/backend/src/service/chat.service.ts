@@ -149,7 +149,19 @@ export async function sendChatMessage(
             if (msg.role === 'user') {
                 return new HumanMessage(msg.content);
             } else {
-                return new AIMessage(msg.content);
+                let content = msg.content;
+                if (content.startsWith('[') && content.endsWith(']')) {
+                    try {
+                        const parsed = JSON.parse(content);
+                        if (Array.isArray(parsed)) {
+                            const textBlocks = parsed.filter((block: any) => block && block.type === 'text');
+                            content = textBlocks.map((block: any) => block.text).join('\n');
+                        }
+                    } catch {
+                        // ignore and use raw string
+                    }
+                }
+                return new AIMessage(content);
             }
         });
 
@@ -171,7 +183,12 @@ export async function sendChatMessage(
         const replyContent =
             typeof replyMessage.content === 'string'
                 ? replyMessage.content
-                : JSON.stringify(replyMessage.content);
+                : Array.isArray(replyMessage.content)
+                    ? replyMessage.content
+                        .filter((block: any) => block && block.type === 'text')
+                        .map((block: any) => block.text)
+                        .join('\n')
+                    : JSON.stringify(replyMessage.content);
 
         const assistantMsgId = generateMessageId();
         const assistantMsgValues = {

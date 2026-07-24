@@ -5,7 +5,8 @@ import {
     getPostMetadataToolService,
     searchPostToolService,
 } from '@/service/agent.service';
-import { AppEnv } from '@/types/env';
+import { getAllCollections, getCollectionDetails } from '@/service/collection.service';
+import { getAllTags } from '@/service/tag.service';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 
@@ -23,15 +24,16 @@ export const agentTools = (db: ReturnType<typeof createDb>) => {
         },
         {
             name: 'search_posts',
-            description:
-                'Search blog posts by title or content using a search query.',
+            description: 'Search published blog posts by title or content matching a query keyword.',
             schema: z.object({
-                query: z.string(),
-                limit: z.number(),
-                offset: z.number(),
+                query: z.string().describe('The keyword query to search for in post titles or content.'),
+                limit: z.number().optional().default(10).describe('Maximum number of posts to return (default 10).'),
+                offset: z.number().optional().default(0).describe('Pagination offset to skip posts (default 0).'),
             }),
         }
     );
+
+    // List published posts
     const listPosts = tool(
         async ({ limit, offset }) => {
             const response = await getListPostToolService(db, limit, offset);
@@ -39,13 +41,14 @@ export const agentTools = (db: ReturnType<typeof createDb>) => {
         },
         {
             name: 'list_published_post',
-            description: '',
+            description: 'Retrieve a list of all published blog posts, including author details, tags, and collections.',
             schema: z.object({
-                limit: z.number(),
-                offset: z.number(),
+                limit: z.number().optional().default(10).describe('Maximum number of posts to return (default 10).'),
+                offset: z.number().optional().default(0).describe('Pagination offset to skip posts (default 0).'),
             }),
         }
     );
+
     // Get post detail
     const getDetailPost = tool(
         async ({ slugOrId }: { slugOrId: string }) => {
@@ -54,13 +57,14 @@ export const agentTools = (db: ReturnType<typeof createDb>) => {
         },
         {
             name: 'get_detail_post',
-            description: "Get a detail post by id (postId) or post's slug",
+            description: 'Retrieve the detailed content, title, and other details of a specific blog post using its ID or URL slug.',
             schema: z.object({
-                slugOrId: z.string(),
+                slugOrId: z.string().describe('The ID (stringified number) or the URL slug of the post.'),
             }),
         }
     );
 
+    // Get post metadata
     const getPostMetadata = tool(
         async ({ postId }) => {
             const response = await getPostMetadataToolService(db, postId);
@@ -68,12 +72,62 @@ export const agentTools = (db: ReturnType<typeof createDb>) => {
         },
         {
             name: 'get_post_metadata',
-            description:
-                "Get a post metadata, include: post's tags, post's slug, post's collections name and a short first 2000 characters content",
+            description: 'Retrieve metadata for a post, including its tags, slug, collection names, and a preview of the first 2000 characters of its content.',
             schema: z.object({
-                postId: z.number(),
+                postId: z.number().describe('The numeric ID of the post.'),
             }),
         }
     );
-    return [searchPost, listPosts, getDetailPost, getPostMetadata];
+
+
+    const listCollections = tool(
+        async () => {
+            const response = await getAllCollections(db);
+            return response;
+        },
+        {
+            name: 'list_collections',
+            description: 'Get a list of all categories/collections available on the blog, including their names, descriptions, and post counts.',
+            schema: z.object({}),
+        }
+    );
+
+    // List tags
+    const listTags = tool(
+        async () => {
+            const response = await getAllTags(db);
+            return response;
+        },
+        {
+            name: 'list_tags',
+            description: 'Get a list of all tags (keywords/topics) currently assigned to blog posts.',
+            schema: z.object({}),
+        }
+    );
+
+    // Get posts by collection/category
+    const getPostsByCollection = tool(
+        async ({ collectionId }) => {
+            const response = await getCollectionDetails(db, collectionId);
+            return response;
+        },
+        {
+            name: 'get_posts_by_collection',
+            description: 'Retrieve a list of all posts belonging to a specific collection/category ID. Use list_collections to retrieve the ID first.',
+            schema: z.object({
+                collectionId: z.number().describe('The numeric ID of the collection.'),
+            }),
+        }
+    );
+
+    return [
+        searchPost,
+        listPosts,
+        getDetailPost,
+        getPostMetadata,
+        listCollections,
+        listTags,
+        getPostsByCollection,
+    ];
 };
+
