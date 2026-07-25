@@ -3,7 +3,10 @@
 <div align="center">
 
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
 [![Hono](https://img.shields.io/badge/Hono-%23E36002.svg?style=for-the-badge&logo=hono&logoColor=white)](https://hono.dev)
+[![Vite](https://img.shields.io/badge/Vite-64748B?style=for-the-badge&logo=vite&logoColor=FFD62B)](https://vite.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Cloudflare D1](https://img.shields.io/badge/Cloudflare_D1-%23F38020.svg?style=for-the-badge&logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/d1/)
 [![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-%23C5F11C.svg?style=for-the-badge&logo=drizzle&logoColor=black)](https://orm.drizzle.team)
 [![TypeScript](https://img.shields.io/badge/TypeScript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -230,6 +233,38 @@ To view and manage your local database tables visually, run Drizzle Studio:
 
 ```bash
 bun --filter backend studio
+```
+
+---
+
+## 💻 How to Setup and Run Frontend
+
+Follow these steps to configure and run the React client.
+
+### 1. Configure Environment Variables
+
+Create a `.env` file in `apps/frontend/` with the backend endpoint:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+### 2. Start the Frontend Development Server
+
+Start the Vite dev server using the workspace filter:
+
+```bash
+bun --filter frontend dev
+```
+
+The application will start running at `http://localhost:5173`.
+
+### 3. Build for Production (Optional)
+
+To compile the production assets, run:
+
+```bash
+bun --filter frontend build
 ```
 
 Build with Cloudian 💙 Cloud - 2026
