@@ -28,6 +28,7 @@ export const getDetailPostParam = z.object({
 export const CreatePostDto = z.object({
     title: z.string(),
     content: z.string(),
+    summary: z.string().max(300, { message: 'Summary must be at most 300 characters long' }).optional(),
     banner: z.string().optional(),
     slug: z.string().optional(),
     tagIds: z.array(z.number()).optional(),
@@ -37,6 +38,7 @@ export const CreatePostDto = z.object({
 export const UpdatePostDto = z.object({
     title: z.string().optional(),
     content: z.string().optional(),
+    summary: z.string().max(300, { message: 'Summary must be at most 300 characters long' }).optional(),
     banner: z.string().optional(),
     slug: z.string().optional(),
     tagIds: z.array(z.number()).optional(),

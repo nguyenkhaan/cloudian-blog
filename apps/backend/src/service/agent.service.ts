@@ -15,6 +15,7 @@ export async function searchPostToolService(
             title: PostModel.title,
             slug: PostModel.slug,
             status: PostModel.status,
+            summary: PostModel.summary,
         })
         .from(PostModel)
         .where(
@@ -54,6 +55,7 @@ export async function getListPostToolService(
             title: true,
             status: true,
             slug: true,
+            summary: true,
         },
         with: {
             postCollections: {
@@ -101,6 +103,7 @@ export async function getPostMetadataToolService(
             id: true,
             slug: true,
             title: true,
+            summary: true,
         },
         with: {
             postCollections: {

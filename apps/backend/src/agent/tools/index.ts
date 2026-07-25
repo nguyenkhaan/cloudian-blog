@@ -9,9 +9,9 @@ import { getAllCollections, getCollectionDetails } from '@/service/collection.se
 import { getAllTags } from '@/service/tag.service';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
-import soulSkill from '../skills/soul.md'
-import searchSkill from '../skills/search.md'
-import researchSkill from '../skills/research.md'
+import soulSkill from '../skills/soul/SKILL.md';
+import searchSkill from '../skills/search/SKILL.md';
+import researchSkill from '../skills/research/SKILL.md';
 export const agentTools = (db: ReturnType<typeof createDb>) => {
     // Search post tool
     const searchPost = tool(

@@ -40,6 +40,7 @@ export async function getAllPost(
                 title: PostModel.title,
                 slug: PostModel.slug,
                 banner: PostModel.banner,
+                summary: PostModel.summary,
                 publishedAt: PostModel.publishedAt,
                 authorName: UserModel.name,
                 nickName: UserModel.nickName,
@@ -81,6 +82,7 @@ export async function getAllPost(
                     title: row.title,
                     slug: row.slug,
                     banner: row.banner,
+                    summary: row.summary,
                     publishedAt: row.publishedAt,
                     author: {
                         name: row.authorName,
@@ -155,6 +157,7 @@ export async function getDetailPost(
                 title: true,
                 content: true,
                 slug: true,
+                summary: true,
                 status: true,
             },
             with: {
@@ -209,6 +212,7 @@ export async function createPost(
             .values({
                 title: data.title,
                 content: data.content,
+                summary: data.summary,
                 banner: data.banner, //Fallback ve du lieu binh thuong
                 slug: data.slug,
                 status: PostStatus.DRAFT,
