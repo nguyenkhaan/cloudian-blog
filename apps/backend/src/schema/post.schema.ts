@@ -18,7 +18,7 @@ export const GetAllPostsQuery = z.object({
 export const GetAllAdminPostQuery = z.object({
     limit: z.coerce.number().default(10).optional(),
     offset: z.coerce.number().default(0).optional(),
-    status: z.enum(PostStatus).optional().default(PostStatus.PUBLISHED),
+    status: z.nativeEnum(PostStatus).optional(),
 });
 
 export const getDetailPostParam = z.object({

@@ -49,6 +49,7 @@ export async function getAllPost(
                 tagName: TagModel.name,
                 collectionId: CollectionModel.id,
                 collectionName: CollectionModel.name,
+                status: PostModel.status
             })
             .from(PostModel)
             .leftJoin(PostTagModel, eq(PostModel.id, PostTagModel.postId))
@@ -71,7 +72,7 @@ export async function getAllPost(
                     : eq(PostModel.status, PostStatus.PUBLISHED)
             )
             //Chi lay danh sach cac bai viet da duoc xuat ban
-            .limit(data.limit || 10)
+            .limit(data.limit || 9)
             .offset(data.offset || 0)
             .orderBy(desc(PostModel.publishedAt));
         console.log(results)
@@ -133,7 +134,7 @@ export async function getAllAdminPosts(
                 slug: true,
                 createdAt: true,
             },
-            where: eq(PostModel.status, data.status),
+            where: data.status ? eq(PostModel.status, data.status) : undefined,
             limit: data.limit || 10,
             offset: data.offset || 0,
         });

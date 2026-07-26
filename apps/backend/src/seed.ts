@@ -170,7 +170,7 @@ async function main() {
             'building-fast-apis-with-hono',
             adminId,
             'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg',
-            'PUBLISHED',
+            'published',
             now
         ).lastInsertRowid;
 
@@ -181,7 +181,7 @@ async function main() {
             'deploying-serverless-backends-on-cloudflare-workers',
             managerId,
             'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg',
-            'PUBLISHED',
+            'published',
             now
         ).lastInsertRowid;
 
@@ -192,7 +192,7 @@ async function main() {
             'deploying-nextjs-on-cloudflare-pages',
             adminId,
             null,
-            'DRAFT',
+            'draft',
             null
         ).lastInsertRowid;
 
