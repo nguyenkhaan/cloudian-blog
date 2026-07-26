@@ -12,6 +12,14 @@ export const getPostsApi = async (params?: {
   return response.data;
 };
 
+export const getAdminPostsApi = async (params?: {
+  limit?: number;
+  offset?: number;
+}): Promise<Post[]> => {
+  const response = await client.get<Post[]>('/posts/admin', { params });
+  return response.data;
+};
+
 export const getPostDetailApi = async (slugOrId: string): Promise<PostDetail> => {
   const response = await client.get<PostDetail>(`/posts/${slugOrId}`);
   return response.data;

@@ -9,7 +9,7 @@ import {
   updateCommentStatusApi
 } from '../api/admin';
 import type { ReportItem, AdminCommentItem } from '../api/admin';
-import { getPostsApi, deletePostApi, updatePostStatusApi, getManagerPostsApi } from '../api/post';
+import { deletePostApi, updatePostStatusApi, getManagerPostsApi, getAdminPostsApi } from '../api/post';
 import type { Post } from '../types/post';
 import { registerApi, forgotPasswordApi, changeEmailApi } from '../api/auth';
 import { Button } from '../components/ui/button';
@@ -217,7 +217,7 @@ export const Dashboard: React.FC = () => {
     setIsLoadingBlogs(true);
     setError(null);
     try {
-      const data = await getPostsApi({ limit: 100 });
+      const data = await getAdminPostsApi({ limit: 100 });
       setBlogs(data);
     } catch (err) {
       setError('Failed to load system blogs.');
