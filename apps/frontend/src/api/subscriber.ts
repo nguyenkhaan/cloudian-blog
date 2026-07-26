@@ -1,13 +1,6 @@
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import client from './client';
 
 export const subscribeApi = async (data: { email: string; name: string }): Promise<any> => {
-  await sleep(600); // Simulate network latency
-  return {
-    success: true,
-    subscriber: {
-      id: Date.now(),
-      email: data.email,
-      name: data.name,
-    },
-  };
+  const response = await client.post<any>('/subscribers', data);
+  return response.data;
 };
