@@ -65,10 +65,10 @@ export async function getAllPost(
             .where(
                 conditions.length > 0
                     ? and(
-                          ...conditions,
-                          eq(PostModel.status, PostStatus.PUBLISHED)
-                      )
-                    : undefined
+                        ...conditions,
+                        eq(PostModel.status, PostStatus.PUBLISHED)
+                    )
+                    : eq(PostModel.status, PostStatus.PUBLISHED)
             )
             //Chi lay danh sach cac bai viet da duoc xuat ban
             .limit(data.limit || 0)
