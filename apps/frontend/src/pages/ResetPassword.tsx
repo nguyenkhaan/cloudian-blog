@@ -57,7 +57,7 @@ export const ResetPassword: React.FC = () => {
       });
     } catch (err: any) {
       setStatus('error');
-      setErrorMessage(err.message || 'Có lỗi xảy ra trong quá trình đặt lại mật khẩu.');
+      setErrorMessage(err.response?.data?.error || err.response?.data?.message || err.message || 'An error occurred during password reset.');
     } finally {
       setIsSubmitting(false);
     }

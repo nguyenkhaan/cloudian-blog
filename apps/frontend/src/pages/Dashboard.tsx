@@ -417,7 +417,7 @@ export const Dashboard: React.FC = () => {
       } catch (err: any) {
         toast({
           title: 'Error updating profile',
-          description: err.response?.data?.message || err.message || 'An error occurred.',
+          description: err.response?.data?.error || err.response?.data?.message || err.message || 'An error occurred.',
           variant: 'destructive',
         });
       } finally {
@@ -461,7 +461,7 @@ export const Dashboard: React.FC = () => {
     } catch (err: any) {
       toast({
         title: 'Error',
-        description: err.response?.data?.message || err.message || 'Failed to trigger password change.',
+        description: err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to trigger password change.',
         variant: 'destructive',
       });
     } finally {
@@ -496,7 +496,7 @@ export const Dashboard: React.FC = () => {
       setManagerEmail('');
       setManagerPassword('');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error creating manager account.');
+      setError(err.response?.data?.error || err.response?.data?.message || 'Error creating manager account.');
     } finally {
       setIsCreatingManager(false);
     }

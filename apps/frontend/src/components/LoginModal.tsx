@@ -53,7 +53,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       });
       handleClose();
     } catch (err: any) {
-      setError(err.message || 'Google login failed. Please try again.');
+      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Google login failed. Please try again.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -75,7 +75,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       });
       handleClose();
     } catch (err: any) {
-      setError(err.message || 'Incorrect email or password.');
+      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Incorrect email or password.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -98,7 +98,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         variant: 'success',
       });
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to send reset link.');
+      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to send reset link.');
     } finally {
       setIsLoggingIn(false);
     }

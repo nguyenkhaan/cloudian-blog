@@ -38,7 +38,7 @@ export const Verify: React.FC = () => {
         }
       } catch (err: any) {
         setStatus('error');
-        setMessage(err.response?.data?.message || err.message || 'Verification failed. The link may have expired or is invalid.');
+        setMessage(err.response?.data?.error || err.response?.data?.message || err.message || 'Verification failed. The link may have expired or is invalid.');
       }
     };
 
