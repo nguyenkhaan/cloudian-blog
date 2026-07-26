@@ -140,11 +140,9 @@ export default function resetEmailTemplate(data: {
                             If you did not request this change, you can ignore this email. Your account will continue to use your current email address.
                         </p>
                         <div class="meta-text">
-                            If the button doesn't work, copy and paste this URL into your browser:<br>
-                            <a href="${data.resetUrl}" class="link-fallback" target="_blank">${data.resetUrl}</a>
                             ${
                                 data.validMinutes
-                                    ? `<br><br>This link will expire in ${data.validMinutes} minutes.`
+                                    ? `This link will expire in ${data.validMinutes} minutes.`
                                     : ''
                             }
                         </div>

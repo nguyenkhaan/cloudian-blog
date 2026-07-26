@@ -126,11 +126,9 @@ export default function verifyRegisterTemplate(data: {
                             If you did not sign up for this account, you can safely ignore this email.
                         </p>
                         <div class="meta-text">
-                            If the button doesn't work, copy and paste this URL into your browser:<br>
-                            <a href="${data.verificationUrl}" class="link-fallback" target="_blank">${data.verificationUrl}</a>
                             ${
                                 data.validMinutes
-                                    ? `<br><br>This link will expire in ${data.validMinutes} minutes.`
+                                    ? `This link will expire in ${data.validMinutes} minutes.`
                                     : ''
                             }
                         </div>
