@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { verifyAccountApi } from '../api/auth';
+import { verifyAccountApi, verifyChangeEmailApi } from '../api/auth';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Navbar } from '../components/Navbar';
@@ -18,17 +18,24 @@ export const Verify: React.FC = () => {
     const performVerification = async () => {
       if (!code) {
         setStatus('error');
-        setMessage('Missing or invalid verification code.');
+        setMessage('Missing or invalid verification token.');
         return;
       }
 
       try {
-        await verifyAccountApi(code);
-        setStatus('success');
-        setMessage('Your account has been successfully verified! You can now sign in to start blogging or reading.');
+        const isEmailChange = window.location.pathname.includes('/verify-email-change');
+        if (isEmailChange) {
+          await verifyChangeEmailApi(code);
+          setStatus('success');
+          setMessage('Email của bạn đã được thay đổi thành công! Vui lòng đăng nhập lại với email mới.');
+        } else {
+          await verifyAccountApi(code);
+          setStatus('success');
+          setMessage('Your account has been successfully verified! You can now sign in to start blogging or reading.');
+        }
       } catch (err: any) {
         setStatus('error');
-        setMessage(err.message || 'Verification failed. The link may have expired or is invalid.');
+        setMessage(err.response?.data?.message || err.message || 'Verification failed. The link may have expired or is invalid.');
       }
     };
 

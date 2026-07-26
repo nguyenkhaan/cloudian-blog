@@ -11,7 +11,7 @@ import {
 import type { ReportItem, AdminCommentItem } from '../api/admin';
 import { getPostsApi, deletePostApi, updatePostStatusApi, getManagerPostsApi } from '../api/post';
 import type { Post } from '../types/post';
-import { registerApi, forgotPasswordApi } from '../api/auth';
+import { registerApi, forgotPasswordApi, changeEmailApi } from '../api/auth';
 import { Button } from '../components/ui/button';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
@@ -381,11 +381,32 @@ export const Dashboard: React.FC = () => {
     setIsSavingProfile(true);
     try {
       if (user) {
+        let emailChanged = false;
+        if (editEmail.trim() !== user.email) {
+          const passwordConfirm = prompt("Vui lòng nhập mật khẩu hiện tại của bạn để xác nhận thay đổi Email:");
+          if (!passwordConfirm) {
+            toast({
+              title: 'Canceled',
+              description: 'Thay đổi Email đã bị hủy vì thiếu mật khẩu xác thực.',
+              variant: 'destructive',
+            });
+            setIsSavingProfile(false);
+            return;
+          }
+          await changeEmailApi(editEmail.trim(), passwordConfirm);
+          emailChanged = true;
+          toast({
+            title: 'Xác minh Email mới',
+            description: 'Một liên kết xác minh đã được gửi đến email mới. Vui lòng kiểm tra hộp thư!',
+            variant: 'success',
+          });
+        }
+
         const updated = {
           ...user,
           name: editName,
           nickName: editNickname || null,
-          email: editEmail,
+          email: emailChanged ? user.email : editEmail.trim(),
         };
         localStorage.setItem('user', JSON.stringify(updated));
         

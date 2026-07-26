@@ -41,3 +41,15 @@ export const forgotPasswordApi = async (email: string): Promise<any> => {
   });
   return response.data;
 };
+
+export const changeEmailApi = async (email: string, password: string): Promise<any> => {
+  const response = await client.post<any>('/auth/change-email', { email, password });
+  return response.data;
+};
+
+export const verifyChangeEmailApi = async (token: string): Promise<string> => {
+  const response = await client.get<string>('/auth/verify-change-email', {
+    params: { token },
+  });
+  return response.data;
+};
