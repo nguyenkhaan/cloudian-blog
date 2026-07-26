@@ -88,7 +88,7 @@ export const ResetPassword: React.FC = () => {
                     placeholder="Enter new password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-200 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-black dark:text-foreground font-semibold"
+                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-200 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-lg font-bold tracking-widest text-black dark:text-foreground"
                   />
                 </div>
 
@@ -100,7 +100,7 @@ export const ResetPassword: React.FC = () => {
                     placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-200 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-black dark:text-foreground font-semibold"
+                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-200 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-lg font-bold tracking-widest text-black dark:text-foreground"
                   />
                 </div>
 

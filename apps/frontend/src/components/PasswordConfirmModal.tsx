@@ -88,7 +88,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
               value={password}
               disabled={isSubmitting}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold text-black dark:text-foreground disabled:opacity-60 transition-all"
+              className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-lg font-bold tracking-widest text-black dark:text-foreground disabled:opacity-60 transition-all"
             />
           </div>
 

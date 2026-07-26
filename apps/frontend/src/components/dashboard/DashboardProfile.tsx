@@ -161,7 +161,7 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
                     value={editPassword}
                     onChange={(e) => setEditPassword(e.target.value)}
                     placeholder="•••••••• (Leave blank to keep)"
-                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-black dark:text-foreground font-semibold"
+                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-lg font-bold tracking-widest text-black dark:text-foreground"
                   />
                 </div>
               </div>

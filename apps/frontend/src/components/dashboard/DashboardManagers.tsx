@@ -96,7 +96,7 @@ export const DashboardManagers: React.FC<DashboardManagersProps> = ({
                 placeholder="••••••••"
                 value={managerPassword}
                 onChange={(e) => setManagerPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-slate-800 dark:text-foreground font-semibold placeholder:text-slate-400 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-lg text-slate-800 dark:text-foreground font-bold tracking-widest placeholder:text-slate-400 transition-all"
               />
             </div>
           </div>
