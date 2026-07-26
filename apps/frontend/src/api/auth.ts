@@ -34,3 +34,10 @@ export const verifyAccountApi = async (code: string): Promise<string> => {
   });
   return response.data;
 };
+
+export const forgotPasswordApi = async (email: string): Promise<any> => {
+  const response = await client.get<any>('/auth/forgot-password', {
+    params: { email },
+  });
+  return response.data;
+};

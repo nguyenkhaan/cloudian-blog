@@ -11,7 +11,7 @@ import {
 import type { ReportItem, AdminCommentItem } from '../api/admin';
 import { getPostsApi, deletePostApi, updatePostStatusApi, getManagerPostsApi } from '../api/post';
 import type { Post } from '../types/post';
-import { registerApi } from '../api/auth';
+import { registerApi, forgotPasswordApi } from '../api/auth';
 import { Button } from '../components/ui/button';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
@@ -360,7 +360,7 @@ export const Dashboard: React.FC = () => {
     });
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editName.trim()) {
       toast({
@@ -379,7 +379,7 @@ export const Dashboard: React.FC = () => {
       return;
     }
     setIsSavingProfile(true);
-    setTimeout(() => {
+    try {
       if (user) {
         const updated = {
           ...user,
@@ -396,23 +396,29 @@ export const Dashboard: React.FC = () => {
         });
         
         if (editPassword.trim()) {
-          // Simulate password update
-          setTimeout(() => {
-            toast({
-              title: 'Password Updated',
-              description: 'Your password has been updated in database.',
-              variant: 'success',
-            });
-          }, 400);
+          await forgotPasswordApi(user.email);
+          toast({
+            title: 'Verification Email Sent',
+            description: 'Mã xác nhận đổi mật khẩu đã gửi vào email. Vui lòng kiểm tra hộp thư!',
+            variant: 'success',
+          });
+          setEditPassword('');
         }
         
         // Reload to sync profile data in other components
         setTimeout(() => {
           window.location.reload();
-        }, 1500);
+        }, 2000);
       }
+    } catch (err: any) {
+      toast({
+        title: 'Error updating profile',
+        description: err.response?.data?.message || err.message || 'An error occurred.',
+        variant: 'destructive',
+      });
+    } finally {
       setIsSavingProfile(false);
-    }, 800);
+    }
   };
 
   const handleCreateManager = async (e: React.FormEvent) => {
