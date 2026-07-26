@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { changePasswordApi } from '../api/auth';
+import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { KeyRound, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -11,6 +12,7 @@ export const ResetPassword: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logout } = useAuth();
   
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,9 +49,10 @@ export const ResetPassword: React.FC = () => {
     setIsSubmitting(true);
     try {
       await changePasswordApi(password, token);
+      logout();
       setStatus('success');
       toast({
-        description: 'Đặt lại mật khẩu thành công!',
+        description: 'Password has been reset successfully.',
         variant: 'success',
       });
     } catch (err: any) {

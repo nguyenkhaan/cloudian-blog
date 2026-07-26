@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { verifyAccountApi, verifyChangeEmailApi } from '../api/auth';
+import { useAuth } from '../hooks/useAuth';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Navbar } from '../components/Navbar';
@@ -9,6 +10,7 @@ import { Footer } from '../components/Footer';
 export const Verify: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
@@ -26,6 +28,7 @@ export const Verify: React.FC = () => {
         const isEmailChange = window.location.pathname.includes('/verify-email-change');
         if (isEmailChange) {
           await verifyChangeEmailApi(code);
+          logout();
           setStatus('success');
           setMessage('Your email address has been successfully changed! Please sign in again with your new email.');
         } else {
