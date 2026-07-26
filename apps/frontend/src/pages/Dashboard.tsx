@@ -13,6 +13,7 @@ import { getPostsApi, deletePostApi, updatePostStatusApi, getManagerPostsApi } f
 import type { Post } from '../types/post';
 import { registerApi, forgotPasswordApi, changeEmailApi } from '../api/auth';
 import { Button } from '../components/ui/button';
+import { PasswordConfirmModal } from '../components/PasswordConfirmModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 // Extracted Tab Components
@@ -138,6 +139,8 @@ export const Dashboard: React.FC = () => {
   const [editPassword, setEditPassword] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [pendingNewEmail, setPendingNewEmail] = useState('');
 
   // New Manager form
   const [managerName, setManagerName] = useState('');
@@ -360,6 +363,46 @@ export const Dashboard: React.FC = () => {
     });
   };
 
+  const handleConfirmEmailChange = async (passwordConfirm: string) => {
+    if (!user) return;
+    setIsSavingProfile(true);
+    try {
+      await changeEmailApi(pendingNewEmail, passwordConfirm);
+      
+      const updated = {
+        ...user,
+        name: editName,
+        nickName: editNickname || null,
+        email: user.email, // Keep old email locally until verified
+      };
+      localStorage.setItem('user', JSON.stringify(updated));
+      
+      toast({
+        title: 'Xác minh Email mới',
+        description: 'Một liên kết xác minh đã được gửi đến email mới. Vui lòng kiểm tra hộp thư!',
+        variant: 'success',
+      });
+
+      if (editPassword.trim()) {
+        await forgotPasswordApi(user.email);
+        toast({
+          title: 'Verification Email Sent',
+          description: 'Mã xác nhận đổi mật khẩu đã gửi vào email. Vui lòng kiểm tra hộp thư!',
+          variant: 'success',
+        });
+        setEditPassword('');
+      }
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (err: any) {
+      throw err; // Let PasswordConfirmModal handle the error internally
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editName.trim()) {
@@ -378,35 +421,21 @@ export const Dashboard: React.FC = () => {
       });
       return;
     }
-    setIsSavingProfile(true);
-    try {
-      if (user) {
-        let emailChanged = false;
-        if (editEmail.trim() !== user.email) {
-          const passwordConfirm = prompt("Vui lòng nhập mật khẩu hiện tại của bạn để xác nhận thay đổi Email:");
-          if (!passwordConfirm) {
-            toast({
-              title: 'Canceled',
-              description: 'Thay đổi Email đã bị hủy vì thiếu mật khẩu xác thực.',
-              variant: 'destructive',
-            });
-            setIsSavingProfile(false);
-            return;
-          }
-          await changeEmailApi(editEmail.trim(), passwordConfirm);
-          emailChanged = true;
-          toast({
-            title: 'Xác minh Email mới',
-            description: 'Một liên kết xác minh đã được gửi đến email mới. Vui lòng kiểm tra hộp thư!',
-            variant: 'success',
-          });
-        }
-
+    
+    if (user) {
+      if (editEmail.trim() !== user.email) {
+        setPendingNewEmail(editEmail.trim());
+        setIsPasswordModalOpen(true);
+        return;
+      }
+      
+      setIsSavingProfile(true);
+      try {
         const updated = {
           ...user,
           name: editName,
           nickName: editNickname || null,
-          email: emailChanged ? user.email : editEmail.trim(),
+          email: editEmail.trim(),
         };
         localStorage.setItem('user', JSON.stringify(updated));
         
@@ -426,19 +455,18 @@ export const Dashboard: React.FC = () => {
           setEditPassword('');
         }
         
-        // Reload to sync profile data in other components
         setTimeout(() => {
           window.location.reload();
         }, 2000);
+      } catch (err: any) {
+        toast({
+          title: 'Error updating profile',
+          description: err.response?.data?.message || err.message || 'An error occurred.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsSavingProfile(false);
       }
-    } catch (err: any) {
-      toast({
-        title: 'Error updating profile',
-        description: err.response?.data?.message || err.message || 'An error occurred.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSavingProfile(false);
     }
   };
 
@@ -791,6 +819,12 @@ export const Dashboard: React.FC = () => {
         variant="danger"
         onConfirm={handleConfirmDeleteBlog}
         onCancel={() => setBlogIdToDelete(null)}
+      />
+
+      <PasswordConfirmModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => { setIsPasswordModalOpen(false); setPendingNewEmail(''); }}
+        onConfirm={handleConfirmEmailChange}
       />
 
     </div>
