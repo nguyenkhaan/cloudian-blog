@@ -369,8 +369,8 @@ export const Dashboard: React.FC = () => {
       await changeEmailApi(pendingNewEmail, passwordConfirm);
       
       toast({
-        title: 'Xác minh Email mới',
-        description: 'Một liên kết xác minh đã được gửi đến email mới. Vui lòng kiểm tra hộp thư!',
+        title: 'Email Verification Sent',
+        description: 'A verification link has been sent to your new email. Please check your mailbox!',
         variant: 'success',
       });
 
@@ -439,7 +439,7 @@ export const Dashboard: React.FC = () => {
     if (user) {
       if (editEmail.trim() === user.email) {
         toast({
-          description: 'Địa chỉ email trùng với email hiện tại.',
+          description: 'This email matches your current email address.',
         });
         return;
       }
@@ -454,8 +454,8 @@ export const Dashboard: React.FC = () => {
     try {
       await forgotPasswordApi(user.email);
       toast({
-        title: 'Verification Email Sent',
-        description: 'Yêu cầu đổi mật khẩu đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư!',
+        title: 'Password Reset Sent',
+        description: 'A password reset link has been sent to your email. Please check your mailbox!',
         variant: 'success',
       });
     } catch (err: any) {

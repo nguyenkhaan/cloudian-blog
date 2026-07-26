@@ -93,7 +93,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       await forgotPasswordApi(forgotEmail.trim());
       setForgotSuccess(true);
       toast({
-        description: 'Mã xác nhận đổi mật khẩu đã gửi vào email!',
+        title: 'Email Sent',
+        description: 'A password reset link has been sent to your email.',
         variant: 'success',
       });
     } catch (err: any) {

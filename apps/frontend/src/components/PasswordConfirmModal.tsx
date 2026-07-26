@@ -22,7 +22,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password.trim()) {
-      setError('Vui lòng nhập mật khẩu hiện tại.');
+      setError('Please enter your current password.');
       return;
     }
     setError(null);
@@ -32,7 +32,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
       setPassword('');
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Mật khẩu xác thực không đúng.');
+      setError(err.response?.data?.message || err.message || 'Incorrect password.');
     } finally {
       setIsSubmitting(false);
     }
@@ -53,7 +53,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
           <div className="flex items-center gap-2.5 text-black dark:text-foreground">
             <KeyRound className="w-5.5 h-5.5 text-primary" />
             <h3 className="font-black text-lg font-heading tracking-tight text-black dark:text-foreground">
-              Xác Nhận Mật Khẩu
+              Confirm Password
             </h3>
           </div>
           <button
@@ -68,7 +68,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
         {/* Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-white dark:bg-card">
           <p className="text-xs text-slate-450 dark:text-muted-foreground leading-relaxed">
-            Để đảm bảo an toàn bảo mật cho tài khoản của bạn, vui lòng nhập mật khẩu hiện tại để xác nhận thay đổi Email.
+            For security, please enter your current password to confirm your email change.
           </p>
 
           {error && (
@@ -78,8 +78,8 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
           )}
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-slate-700 dark:text-slate-350 block">
-              Mật khẩu hiện tại
+            <label className="text-[11px] font-bold text-slate-700 dark:text-slate-355 block">
+              Current Password
             </label>
             <input
               type="password"
@@ -101,7 +101,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
               onClick={handleClose}
               className="text-black dark:text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-extrabold px-4 py-2.5 rounded-xl cursor-pointer shadow-none"
             >
-              Hủy
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -111,7 +111,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
               }`}
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              Xác Nhận
+              Confirm
             </Button>
           </div>
         </form>

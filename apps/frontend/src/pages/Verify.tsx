@@ -27,7 +27,7 @@ export const Verify: React.FC = () => {
         if (isEmailChange) {
           await verifyChangeEmailApi(code);
           setStatus('success');
-          setMessage('Email của bạn đã được thay đổi thành công! Vui lòng đăng nhập lại với email mới.');
+          setMessage('Your email address has been successfully changed! Please sign in again with your new email.');
         } else {
           await verifyAccountApi(code);
           setStatus('success');
