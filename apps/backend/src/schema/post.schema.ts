@@ -2,8 +2,8 @@ import { PostStatus } from '@/model';
 import { z } from 'zod';
 
 export const GetAllPostsQuery = z.object({
-    limit: z.coerce.number().default(0).optional(),
-    offset: z.coerce.number().default(10).optional(),
+    limit: z.coerce.number().default(10).optional(),
+    offset: z.coerce.number().default(0).optional(),
     tag: z
         .string()
         .transform((v) => v.split(','))

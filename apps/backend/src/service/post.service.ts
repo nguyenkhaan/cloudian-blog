@@ -159,6 +159,8 @@ export async function getDetailPost(
                 slug: true,
                 summary: true,
                 status: true,
+                banner: true,
+                publishedAt: true,
             },
             with: {
                 author: {
