@@ -90,6 +90,12 @@ export async function login(
             accessToken,
             refreshToken,
             provider: AuthProvider.LOCAL,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                roles: userRoles,
+            },
         };
     } catch (err) {
         console.log('login error: ', err);
