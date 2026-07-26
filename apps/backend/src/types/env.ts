@@ -1,6 +1,6 @@
 import { createDb } from '@/db/index';
 import { AccessJwtPayload } from './jwt';
-
+import type { Redis } from '@upstash/redis'
 export type AppEnv = {
     Bindings: {
         //Binding nay chinh la khai bao cac bien moi truong, hono se dua vao day va tien hanh lay ra gia tri cac bein moi truong tuong ung trong file .env
@@ -24,11 +24,14 @@ export type AppEnv = {
         SMTP_PASSWORD?: string;
         SMTP_FROM_NAME?: string;
         SMTP_FROM_EMAIL?: string;
+        UPSTASH_REDIS_REST_URL: string; 
+        UPSTASH_REDIS_REST_TOKEN: string; 
     };
     Variables: {
         db: ReturnType<typeof createDb>;
         //Dinh nghia bien user ben trong context, se duoc su dung de tien hanh lay ra thong tin user (c.get('user'))
         user: AccessJwtPayload;
+        redis : Redis; 
     };
 };
 

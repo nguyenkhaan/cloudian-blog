@@ -18,8 +18,10 @@ import CommentRoute from '@/controller/comment.controller';
 import ReportRoute from '@/controller/report.controller';
 import SubscriberRoute from '@/controller/subscriber.controller';
 import ChatRoute from '@/controller/chat.controller';
+import { redisMiddleware } from './middleware/redis.middleware';
 const app = new Hono<AppEnv>();
 app.use('*', databaseMiddleware);
+app.use('*' , redisMiddleware)
 app.notFound((c: Context) => {
     return c.text('Cloudian Notification Not Found');
 });

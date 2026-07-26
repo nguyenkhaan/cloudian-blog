@@ -1,4 +1,5 @@
 import { AuthMiddleware } from '@/middleware/auth.middleware';
+import { rateLimitMiddleware } from '@/middleware/rateLimit.middlware';
 import { requireRole } from '@/middleware/role.middlware';
 import { PostStatus, Role, PostModel } from '@/model';
 import {
@@ -89,6 +90,25 @@ route.get(
         return c.json(response);
     }
 );
+
+
+route.get('/download' , AuthMiddleware, describeRoute({
+    summary: 'Download Post', 
+    tags, 
+    description: "Convert content to pdf and download it to local"
+}) , 
+    rateLimitMiddleware({
+        limit: 1, 
+        window: '3 m', 
+        key: (c) => {
+            const user = c.get('user') 
+            return `${user.sub}:pdf`
+        }
+    }), 
+    async (c) => {
+
+    }
+)
 
 route.get(
     '/:slugOrId',
