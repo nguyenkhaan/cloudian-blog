@@ -17,10 +17,10 @@ interface DashboardProfileProps {
   setEditNickname: (val: string) => void;
   editEmail: string;
   setEditEmail: (val: string) => void;
-  editPassword: string;
-  setEditPassword: (val: string) => void;
   isSavingProfile: boolean;
   handleUpdateProfile: (e: React.FormEvent) => void;
+  handleEmailUpdateSubmit: (e: React.FormEvent) => void;
+  handleTriggerPasswordReset: () => void;
   setIsSignOutModalOpen: (val: boolean) => void;
   isChatbotEnabled?: boolean;
   onToggleChatbot?: () => void;
@@ -38,10 +38,10 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
   setEditNickname,
   editEmail,
   setEditEmail,
-  editPassword,
-  setEditPassword,
   isSavingProfile,
   handleUpdateProfile,
+  handleEmailUpdateSubmit,
+  handleTriggerPasswordReset,
   setIsSignOutModalOpen,
   isChatbotEnabled = true,
   onToggleChatbot
@@ -78,7 +78,7 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
                   Content Creator
                 </span>
               )}
-              <span className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-650 dark:text-slate-350 border border-slate-200 dark:border-border text-[10px] font-black uppercase tracking-wider">
+              <span className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-655 dark:text-slate-350 border border-slate-200 dark:border-border text-[10px] font-black uppercase tracking-wider">
                 User
               </span>
             </div>
@@ -98,7 +98,7 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
                 <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
                   user?.approve !== 0
                     ? 'bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-450 border border-green-105 dark:border-green-900/50'
-                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-450 border border-amber-105 dark:border-amber-900/50'
+                    : 'bg-amber-50 text-amber-700 dark:bg-amber-955/20 dark:text-amber-450 border border-amber-105 dark:border-amber-900/50'
                 }`}>
                   {user?.approve !== 0 ? 'Approved' : 'Pending'}
                 </span>
@@ -117,6 +117,7 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
 
         {/* Settings & Info Form */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Edit Profile Form */}
           <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 transition-colors duration-300 space-y-4">
             <h3 className="font-extrabold text-base text-slate-800 dark:text-foreground">Edit Account Information</h3>
             <form onSubmit={handleUpdateProfile} className="space-y-4">
@@ -142,29 +143,6 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
                   />
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-350 block">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    value={editEmail}
-                    onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-black dark:text-foreground font-semibold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-350 block">Change Password</label>
-                  <input
-                    type="password"
-                    value={editPassword}
-                    onChange={(e) => setEditPassword(e.target.value)}
-                    placeholder="•••••••• (Leave blank to keep)"
-                    className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-lg font-bold tracking-widest text-black dark:text-foreground"
-                  />
-                </div>
-              </div>
               <div className="flex justify-end pt-2">
                 <Button
                   type="submit"
@@ -183,11 +161,62 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
             </form>
           </div>
 
+          {/* Change Email Section */}
+          <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 transition-colors duration-300 space-y-4">
+            <h3 className="font-extrabold text-base text-slate-800 dark:text-foreground">Change Email Address</h3>
+            <form onSubmit={handleEmailUpdateSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-350 block">New Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-black dark:text-foreground font-semibold"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="bg-primary hover:opacity-95 text-white font-black text-sm rounded-xl px-5 py-3 shadow-none flex items-center gap-1.5 cursor-pointer"
+                >
+                  {isSavingProfile ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Update Email'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          {/* Security / Password Section */}
+          <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 transition-colors duration-300 space-y-4">
+            <h3 className="font-extrabold text-base text-slate-800 dark:text-foreground">Security Settings</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-sm font-extrabold text-slate-800 dark:text-foreground block">Change Password</span>
+                <span className="text-xs text-slate-400 block leading-tight">
+                  Receive a secure link in your email to reset your account password.
+                </span>
+              </div>
+              <Button
+                type="button"
+                onClick={handleTriggerPasswordReset}
+                disabled={isSavingProfile}
+                className="bg-primary hover:opacity-95 text-white font-black text-sm rounded-xl px-5 py-3 shadow-none cursor-pointer self-start sm:self-auto"
+              >
+                Change Password
+              </Button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {isAdmin && (
               <>
                 <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-5 transition-colors duration-300">
-                  <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">
+                  <span className="text-xs font-bold text-slate-405 block uppercase tracking-wider">
                     Reports Pending
                   </span>
                   <span className="text-3xl font-black text-slate-800 dark:text-foreground mt-2 block">
@@ -198,7 +227,7 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
                 <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-5 transition-colors duration-300 flex flex-col justify-center">
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-slate-405 uppercase tracking-wider">
                         AI Assistant Toggle
                       </span>
                       <button
@@ -225,7 +254,7 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
 
             {isManager && (
               <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-5 transition-colors duration-300">
-                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-405 block uppercase tracking-wider">
                   My Blogs
                 </span>
                 <span className="text-3xl font-black text-slate-800 dark:text-foreground mt-2 block">

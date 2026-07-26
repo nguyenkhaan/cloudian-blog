@@ -136,7 +136,6 @@ export const Dashboard: React.FC = () => {
   const [editName, setEditName] = useState(user?.name || '');
   const [editNickname, setEditNickname] = useState(user?.nickName || '');
   const [editEmail, setEditEmail] = useState(user?.email || '');
-  const [editPassword, setEditPassword] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -369,29 +368,11 @@ export const Dashboard: React.FC = () => {
     try {
       await changeEmailApi(pendingNewEmail, passwordConfirm);
       
-      const updated = {
-        ...user,
-        name: editName,
-        nickName: editNickname || null,
-        email: user.email, // Keep old email locally until verified
-      };
-      localStorage.setItem('user', JSON.stringify(updated));
-      
       toast({
         title: 'Xác minh Email mới',
         description: 'Một liên kết xác minh đã được gửi đến email mới. Vui lòng kiểm tra hộp thư!',
         variant: 'success',
       });
-
-      if (editPassword.trim()) {
-        await forgotPasswordApi(user.email);
-        toast({
-          title: 'Verification Email Sent',
-          description: 'Mã xác nhận đổi mật khẩu đã gửi vào email. Vui lòng kiểm tra hộp thư!',
-          variant: 'success',
-        });
-        setEditPassword('');
-      }
 
       setTimeout(() => {
         window.location.reload();
@@ -413,29 +394,14 @@ export const Dashboard: React.FC = () => {
       });
       return;
     }
-    if (!editEmail.trim() || !editEmail.includes('@')) {
-      toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid email address.',
-        variant: 'destructive',
-      });
-      return;
-    }
     
     if (user) {
-      if (editEmail.trim() !== user.email) {
-        setPendingNewEmail(editEmail.trim());
-        setIsPasswordModalOpen(true);
-        return;
-      }
-      
       setIsSavingProfile(true);
       try {
         const updated = {
           ...user,
           name: editName,
           nickName: editNickname || null,
-          email: editEmail.trim(),
         };
         localStorage.setItem('user', JSON.stringify(updated));
         
@@ -445,19 +411,9 @@ export const Dashboard: React.FC = () => {
           variant: 'success',
         });
         
-        if (editPassword.trim()) {
-          await forgotPasswordApi(user.email);
-          toast({
-            title: 'Verification Email Sent',
-            description: 'Mã xác nhận đổi mật khẩu đã gửi vào email. Vui lòng kiểm tra hộp thư!',
-            variant: 'success',
-          });
-          setEditPassword('');
-        }
-        
         setTimeout(() => {
           window.location.reload();
-        }, 2000);
+        }, 1500);
       } catch (err: any) {
         toast({
           title: 'Error updating profile',
@@ -467,6 +423,49 @@ export const Dashboard: React.FC = () => {
       } finally {
         setIsSavingProfile(false);
       }
+    }
+  };
+
+  const handleEmailUpdateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editEmail.trim() || !editEmail.includes('@')) {
+      toast({
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (user) {
+      if (editEmail.trim() === user.email) {
+        toast({
+          description: 'Địa chỉ email trùng với email hiện tại.',
+        });
+        return;
+      }
+      setPendingNewEmail(editEmail.trim());
+      setIsPasswordModalOpen(true);
+    }
+  };
+
+  const handleTriggerPasswordReset = async () => {
+    if (!user) return;
+    setIsSavingProfile(true);
+    try {
+      await forgotPasswordApi(user.email);
+      toast({
+        title: 'Verification Email Sent',
+        description: 'Yêu cầu đổi mật khẩu đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư!',
+        variant: 'success',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || err.message || 'Failed to trigger password change.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingProfile(false);
     }
   };
 
@@ -761,10 +760,10 @@ export const Dashboard: React.FC = () => {
             setEditNickname={setEditNickname}
             editEmail={editEmail}
             setEditEmail={setEditEmail}
-            editPassword={editPassword}
-            setEditPassword={setEditPassword}
             isSavingProfile={isSavingProfile}
             handleUpdateProfile={handleUpdateProfile}
+            handleEmailUpdateSubmit={handleEmailUpdateSubmit}
+            handleTriggerPasswordReset={handleTriggerPasswordReset}
             setIsSignOutModalOpen={setIsSignOutModalOpen}
             isChatbotEnabled={isChatbotEnabled}
             onToggleChatbot={handleToggleChatbot}
