@@ -300,7 +300,11 @@ export const Dashboard: React.FC = () => {
       const updateList = (prev: Post[]) =>
         prev.map((p) =>
           p.id === postId
-            ? { ...p, publishedAt: nextStatus === 'published' ? new Date().toISOString() : null }
+            ? {
+                ...p,
+                status: nextStatus,
+                publishedAt: nextStatus === 'published' ? new Date().toISOString() : null
+              }
             : p
         );
 
