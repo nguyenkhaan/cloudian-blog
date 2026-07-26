@@ -68,7 +68,7 @@ export const DashboardBlogs: React.FC<DashboardBlogsProps> = ({
                       {blog.author?.name || 'Unknown'}
                     </td>
                     <td className="px-6 py-4">
-                      {blog.publishedAt ? (
+                      {blog.status === 'published' ? (
                         <button
                           onClick={() => handleToggleBlogStatus(blog.id, 'published', true)}
                           disabled={isUpdatingBlogId === blog.id}
@@ -95,7 +95,7 @@ export const DashboardBlogs: React.FC<DashboardBlogsProps> = ({
                       )}
                     </td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                      {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : 'Draft'}
+                      {blog.status === 'published' && blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : 'Draft'}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">

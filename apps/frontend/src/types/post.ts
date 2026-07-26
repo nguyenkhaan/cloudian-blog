@@ -22,6 +22,7 @@ export interface Post {
   summary?: string | null;
   banner?: string | null;
   publishedAt?: string | null;
+  status: string;
   author: PostAuthor;
   tags: Tag[];
   collections: Collection[];

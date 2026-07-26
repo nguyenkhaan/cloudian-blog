@@ -132,12 +132,22 @@ export async function getAllAdminPosts(
                 title: true,
                 status: true,
                 slug: true,
+                publishedAt: true,
                 createdAt: true,
+            },
+            with: {
+                author: {
+                    columns: {
+                        name: true,
+                        nickName: true,
+                    }
+                }
             },
             where: data.status ? eq(PostModel.status, data.status) : undefined,
             limit: data.limit || 10,
             offset: data.offset || 0,
         });
+        console.log(posts)
         return posts;
     } catch (err) {
         console.log('Get all admin posts error: ', err);
