@@ -71,9 +71,10 @@ export async function getAllPost(
                     : eq(PostModel.status, PostStatus.PUBLISHED)
             )
             //Chi lay danh sach cac bai viet da duoc xuat ban
-            .limit(data.limit || 0)
+            .limit(data.limit || 10)
             .offset(data.offset || 0)
             .orderBy(desc(PostModel.publishedAt));
+        console.log(results)
         const map = new Map<number, any>();
         for (const row of results) {
             if (!map.has(row.id)) {
