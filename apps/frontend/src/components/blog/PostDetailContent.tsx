@@ -1,15 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { PostDetail } from '../../types/post';
+import hljs from 'highlight.js';
 
 interface PostDetailContentProps {
   contentHtml: string;
   tags: NonNullable<PostDetail['tags']>;
 }
 
-export const PostDetailContent: React.FC<PostDetailContentProps> = ({
+export const PostDetailContent: React.FC<PostDetailContentProps> = React.memo(({
   contentHtml,
   tags
 }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      document.querySelectorAll('.markdown-content pre code').forEach((block) => {
+        hljs.highlightElement(block as HTMLElement);
+      });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [contentHtml]);
+
   return (
     <div className="space-y-8">
       <div
@@ -31,4 +41,5 @@ export const PostDetailContent: React.FC<PostDetailContentProps> = ({
       )}
     </div>
   );
-};
+});
+

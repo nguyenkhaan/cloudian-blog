@@ -1,5 +1,5 @@
 {
-    "name": "blog-api",
+    "name": "cloudian-zea-api",
     "main": "./src/index.ts",
     "compatibility_date": "2026-07-13",
     "compatibility_flags": [

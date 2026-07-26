@@ -57,25 +57,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const loginWithGoogle = async (idToken: string): Promise<AuthResponse> => {
-    setIsLoading(true);
-    try {
-      const data = await loginWithGoogleApi(idToken);
-      handleAuthSuccess(data);
-      return data;
-    } finally {
-      setIsLoading(false);
-    }
+    const data = await loginWithGoogleApi(idToken);
+    handleAuthSuccess(data);
+    return data;
   };
 
   const loginLocal = async (email: string, password: string): Promise<AuthResponse> => {
-    setIsLoading(true);
-    try {
-      const data = await loginLocalApi(email, password);
-      handleAuthSuccess(data);
-      return data;
-    } finally {
-      setIsLoading(false);
-    }
+    const data = await loginLocalApi(email, password);
+    handleAuthSuccess(data);
+    return data;
   };
 
   const logout = () => {

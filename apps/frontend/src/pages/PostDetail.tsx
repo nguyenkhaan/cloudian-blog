@@ -12,7 +12,6 @@ import { PostDetailContent } from '../components/blog/PostDetailContent';
 import { PostDetailSkeleton } from '../components/ui/Skeleton';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import {
   ArrowLeft,
@@ -58,17 +57,6 @@ export const PostDetail: React.FC = () => {
   }, [post]);
 
   useEffect(() => {
-    if (post && !isLoading) {
-      const timer = setTimeout(() => {
-        document.querySelectorAll('.markdown-content pre code').forEach((block) => {
-          hljs.highlightElement(block as HTMLElement);
-        });
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [post, isLoading]);
-
-  useEffect(() => {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (totalScroll > 0) {
@@ -108,7 +96,7 @@ export const PostDetail: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50/20 dark:bg-background flex flex-col transition-colors duration-300">
-        <Navbar />
+        <Navbar activeTab="blog" />
         <main className="flex-grow py-12">
           <PostDetailSkeleton />
         </main>
@@ -145,7 +133,7 @@ export const PostDetail: React.FC = () => {
         style={{ width: `${scrollProgress}%` }}
       />
 
-      <Navbar activeTab="blog" homeLabel="Trang Chủ" blogsLabel="Bài Viết" onSubscribe={() => setIsSubscribeOpen(true)} />
+      <Navbar activeTab="blog" onSubscribe={() => setIsSubscribeOpen(true)} />
 
       <main className="flex-grow max-w-[1600px] w-full mx-auto px-0 md:px-6 py-8 space-y-12">
         <div className="px-6 md:px-0 max-w-5xl mx-auto w-full">
