@@ -7,7 +7,8 @@
         "seed:remote": "bunx tsx src/seed.ts --remote",
         "seed:remote:dry-run": "bunx tsx src/seed.ts --remote --dry-run",
         "migrate": "bunx wrangler d1 migrations apply blogging-database",
-        "migrate:remote": "bunx wrangler d1 migrations apply blogging-database --remote"
+        "migrate:remote": "bunx wrangler d1 migrations apply blogging-database --remote", 
+        "deploy": "bunx wrangler deploy"
     },
     "dependencies": {
         "@cloudflare/puppeteer": "^1.1.0",
