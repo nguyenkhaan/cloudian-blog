@@ -179,7 +179,7 @@ route.post('/download/:postId' , AuthMiddleware, describeRoute({
         return new Response(result.pdf , {
             headers: {
                 "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${result.fileName}"`,
+                "Content-Disposition": `attachment; filename="${result.fileName}.pdf"`,
             }
         })
     }

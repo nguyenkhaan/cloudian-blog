@@ -71,6 +71,26 @@ export const updatePostStatusApi = async (postId: number, status: 'draft' | 'pub
   return response.data;
 };
 
+export const downloadPost = async (postId: number): Promise<{ blob: Blob; fileName: string }> => {
+  const response = await client.post(`/posts/download/${postId}`, null, {
+    responseType: 'blob',
+    headers: {
+      Accept: 'application/pdf',
+    },
+  });
+
+  const contentDisposition = response.headers['content-disposition'] || '';
+  const match = contentDisposition.match(/filename\*?=(?:UTF-8''|")?([^;"']+)/i);
+  const fileName = match?.[1]
+    ? decodeURIComponent(match[1])
+    : `post-${postId}.pdf`;
+
+  return {
+    blob: response.data as Blob,
+    fileName,
+  };
+};
+
 export interface UploadSignatureResponse {
   signature: string;
   timestamp: number;

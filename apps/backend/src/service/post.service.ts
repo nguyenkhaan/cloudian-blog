@@ -627,7 +627,9 @@ export const downloadPost = async (db : ReturnType<typeof createDb> , postId : n
             ), 
             columns: {
                 id: true, 
-                content: true 
+                content: true, 
+                title : true, 
+                slug: true 
             }
         }) 
         if (!post || !user) 
@@ -641,8 +643,9 @@ export const downloadPost = async (db : ReturnType<typeof createDb> , postId : n
             postId: post.id, 
             userId: user.id 
         })
-        const fileName = generateRandomString(8)
-        const pdf = await convertPdf(post.content , browser)
+        const fileName = (post.slug || 'cloudian').replaceAll('-' , '_') + generateRandomString(8)
+        const content = `<h1>${post.title}</h1>${post.content}`
+        const pdf = await convertPdf(content , browser)
         return {
             fileName, 
             pdf 
