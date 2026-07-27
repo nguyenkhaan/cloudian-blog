@@ -8,7 +8,7 @@ export const PostModel = sqliteTable(
     {
         id: integer('id').primaryKey({ autoIncrement: true }),
         title: text('title').notNull(),
-        content: text('content').default(''),
+        content: text('content').default('').notNull(),
         slug: text('slug'),
         authorId: integer('author_id').references(() => UserModel.id),
         banner: text('banner'),

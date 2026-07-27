@@ -43,6 +43,13 @@
       "when": 1784953991867,
       "tag": "0005_unique_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1785070888478,
+      "tag": "0006_tranquil_eddie_brock",
+      "breakpoints": true
     }
   ]
 }

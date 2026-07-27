@@ -17,6 +17,7 @@ import {
     SavePostTagsDto,
     SavePostTagsParam,
     DeletePostParam,
+    DownloadPostParam,
 } from '@/schema/post.schema';
 import {
     createPost,
@@ -30,6 +31,7 @@ import {
     updatePostStatus,
     saveCollection,
     saveTag,
+    downloadPost,
 } from '@/service/post.service';
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
@@ -83,7 +85,7 @@ route.get(
     validator('query', GetUserPostsQuery),
     async (c) => {
         const db = await c.get('db');
-        const user = c.get('user');
+        const user = await c.get('user');
         const userId = Number(user.sub);
         const data = await c.req.valid('query');
         const response = await getUserPosts(db, userId, data);
@@ -92,23 +94,6 @@ route.get(
 );
 
 
-route.get('/download' , AuthMiddleware, describeRoute({
-    summary: 'Download Post', 
-    tags, 
-    description: "Convert content to pdf and download it to local"
-}) , 
-    rateLimitMiddleware({
-        limit: 1, 
-        window: '3 m', 
-        key: (c) => {
-            const user = c.get('user') 
-            return `${user.sub}:pdf`
-        }
-    }), 
-    async (c) => {
-
-    }
-)
 
 route.get(
     '/:slugOrId',
@@ -139,7 +124,7 @@ route.post(
     async (c) => {
         const db = await c.get('db');
         const data = await c.req.valid('json');
-        const user = await c.get('user');
+        const user = c.get('user');
         const userId = Number(user.sub);
         const response = await createPost(db, userId, data);
         return c.json(response);
@@ -170,6 +155,35 @@ route.post(
         return c.json(response);
     }
 );
+
+route.post('/download/:postId' , AuthMiddleware, describeRoute({
+    summary: 'Download Post', 
+    tags, 
+    description: "Convert content to pdf and download it to local"
+}) , 
+    rateLimitMiddleware({
+        limit: 1, 
+        window: '3 m', 
+        key: (c) => {
+            const user = c.get('user') 
+            return `${user.sub}:pdf`
+        }
+    }), 
+    validator('param' , DownloadPostParam), 
+    async (c) => {
+        const user = c.get('user') 
+        const db = await c.get('db') 
+        const { postId } = await c.req.valid('param')
+        const browser = c.env.MY_BROWSER
+        const result = await downloadPost(db , Number(postId) , Number(user.sub) , browser)
+        return new Response(result.pdf , {
+            headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="${result.fileName}"`,
+            }
+        })
+    }
+)
 
 route.put(
     '/:postId',

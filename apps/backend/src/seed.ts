@@ -1,283 +1,141 @@
+import { execFileSync } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import drizzleConfig from '../drizzle.config';
 import { hashPass } from './helper/pwd';
 
-async function main() {
+const args = new Set(process.argv.slice(2));
+const isRemote = args.has('--remote');
+const isDryRun = args.has('--dry-run');
+const databaseName = 'blogging-database';
+
+function escapeSql(value: string | number | null) {
+    if (value === null) {
+        return 'NULL';
+    }
+
+    if (typeof value === 'number') {
+        return String(value);
+    }
+
+    return `'${value.replace(/'/g, "''")}'`;
+}
+
+function buildSeedSql(passwordHash: string, now: number) {
+    return [
+        'PRAGMA foreign_keys = ON;',
+        'DELETE FROM post_tag;',
+        'DELETE FROM post_collection;',
+        'DELETE FROM tag;',
+        'DELETE FROM collection;',
+        'DELETE FROM comment;',
+        'DELETE FROM report;',
+        'DELETE FROM subscriber;',
+        'DELETE FROM post;',
+        'DELETE FROM user_role;',
+        'DELETE FROM user;',
+        '',
+        `INSERT INTO user (email, name, nickName, password, active, approve) VALUES (${escapeSql('admin@gmail.com')}, ${escapeSql('Admin User')}, ${escapeSql('admin')}, ${escapeSql(passwordHash)}, 1, 1);`,
+        `INSERT INTO user (email, name, nickName, password, active, approve) VALUES (${escapeSql('manager@gmail.com')}, ${escapeSql('Manager User')}, ${escapeSql('manager')}, ${escapeSql(passwordHash)}, 1, 1);`,
+        `INSERT INTO user (email, name, nickName, password, active, approve) VALUES (${escapeSql('user@gmail.com')}, ${escapeSql('Regular User')}, ${escapeSql('user')}, ${escapeSql(passwordHash)}, 1, 1);`,
+        `INSERT INTO user (email, name, nickName, password, active, approve) VALUES (${escapeSql('reporter@gmail.com')}, ${escapeSql('Reporter User')}, ${escapeSql('reporter')}, ${escapeSql(passwordHash)}, 1, 1);`,
+        `INSERT INTO user_role (user_id, role) SELECT id, 'admin' FROM user WHERE email = 'admin@gmail.com';`,
+        `INSERT INTO user_role (user_id, role) SELECT id, 'manager' FROM user WHERE email = 'admin@gmail.com';`,
+        `INSERT INTO user_role (user_id, role) SELECT id, 'user' FROM user WHERE email = 'admin@gmail.com';`,
+        `INSERT INTO user_role (user_id, role) SELECT id, 'manager' FROM user WHERE email = 'manager@gmail.com';`,
+        `INSERT INTO user_role (user_id, role) SELECT id, 'user' FROM user WHERE email = 'manager@gmail.com';`,
+        `INSERT INTO user_role (user_id, role) SELECT id, 'user' FROM user WHERE email = 'user@gmail.com';`,
+        `INSERT INTO user_role (user_id, role) SELECT id, 'user' FROM user WHERE email = 'reporter@gmail.com';`,
+        `INSERT INTO tag (name, slug) VALUES ('Technology', 'technology');`,
+        `INSERT INTO tag (name, slug) VALUES ('Programming', 'programming');`,
+        `INSERT INTO tag (name, slug) VALUES ('Serverless', 'serverless');`,
+        `INSERT INTO tag (name, slug) VALUES ('Hono Framework', 'hono-framework');`,
+        `INSERT INTO collection (name, description, thumbnail) VALUES ('Backend Masterclass', 'Learn how to build high performance backends using Hono, Drizzle, and TypeScript.', 'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg');`,
+        `INSERT INTO collection (name, description, thumbnail) VALUES ('Going Serverless', 'Deep dive into Cloudflare Workers, KV, D1, and R2 bindings.', 'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg');`,
+        `INSERT INTO post (title, content, slug, author_id, banner, status, published_at) VALUES ('Building Fast APIs with Hono', 'Hono is a small, simple, and ultrafast web framework built for Cloudflare Workers, Bun, and other JavaScript runtimes. In this article, we explore the basics of routing, middleware, and request validation...', 'building-fast-apis-with-hono', (SELECT id FROM user WHERE email = 'admin@gmail.com'), 'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg', 'published', ${now});`,
+        `INSERT INTO post (title, content, slug, author_id, banner, status, published_at) VALUES ('Deploying Serverless Backends on Cloudflare Workers', 'Cloudflare Workers offer an incredibly cheap and performant way to run code at the edge. We will guide you through connecting a Worker to a D1 SQLite database, running schema migrations, and handling requests.', 'deploying-serverless-backends-on-cloudflare-workers', (SELECT id FROM user WHERE email = 'manager@gmail.com'), 'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg', 'published', ${now});`,
+        `INSERT INTO post (title, content, slug, author_id, banner, status, published_at) VALUES ('Deploying Next.js on Cloudflare Pages', 'This is a draft post detailing the deploy step of a Next.js frontend to Cloudflare Pages. It is currently under editing review.', 'deploying-nextjs-on-cloudflare-pages', (SELECT id FROM user WHERE email = 'admin@gmail.com'), NULL, 'draft', NULL);`,
+        `INSERT INTO post_tag (tag_id, post_id) SELECT (SELECT id FROM tag WHERE slug = 'technology'), (SELECT id FROM post WHERE slug = 'building-fast-apis-with-hono');`,
+        `INSERT INTO post_tag (tag_id, post_id) SELECT (SELECT id FROM tag WHERE slug = 'hono-framework'), (SELECT id FROM post WHERE slug = 'building-fast-apis-with-hono');`,
+        `INSERT INTO post_tag (tag_id, post_id) SELECT (SELECT id FROM tag WHERE slug = 'technology'), (SELECT id FROM post WHERE slug = 'deploying-serverless-backends-on-cloudflare-workers');`,
+        `INSERT INTO post_tag (tag_id, post_id) SELECT (SELECT id FROM tag WHERE slug = 'serverless'), (SELECT id FROM post WHERE slug = 'deploying-serverless-backends-on-cloudflare-workers');`,
+        `INSERT INTO post_collection (post_id, collection_id) SELECT (SELECT id FROM post WHERE slug = 'building-fast-apis-with-hono'), (SELECT id FROM collection WHERE name = 'Backend Masterclass');`,
+        `INSERT INTO post_collection (post_id, collection_id) SELECT (SELECT id FROM post WHERE slug = 'deploying-serverless-backends-on-cloudflare-workers'), (SELECT id FROM collection WHERE name = 'Going Serverless');`,
+        `INSERT INTO comment (content, status, user_id, post_id) VALUES ('This is an amazing framework! Built my first API in 5 minutes.', 'active', (SELECT id FROM user WHERE email = 'user@gmail.com'), (SELECT id FROM post WHERE slug = 'building-fast-apis-with-hono'));`,
+        `INSERT INTO comment (content, status, user_id, post_id) VALUES ('Is this production ready? Can we run it on Node environments too?', 'active', (SELECT id FROM user WHERE email = 'reporter@gmail.com'), (SELECT id FROM post WHERE slug = 'building-fast-apis-with-hono'));`,
+        `INSERT INTO comment (content, status, user_id, post_id) VALUES ('Yes, Hono supports Node.js, Bun, Deno, and Cloudflare Workers seamlessly!', 'active', (SELECT id FROM user WHERE email = 'admin@gmail.com'), (SELECT id FROM post WHERE slug = 'building-fast-apis-with-hono'));`,
+        `INSERT INTO comment (content, status, user_id, post_id) VALUES ('Buy cheap stocks option links here!!! http://spam-links.com', 'invalid', (SELECT id FROM user WHERE email = 'reporter@gmail.com'), (SELECT id FROM post WHERE slug = 'building-fast-apis-with-hono'));`,
+        `INSERT INTO report (title, content, user_id, status, entity, solved_at) VALUES ('Spam Comment Report', 'The comment with ID 1 contains unsolicited financial spam links.', (SELECT id FROM user WHERE email = 'user@gmail.com'), 'solved', 'comment', ${now});`,
+        `INSERT INTO report (title, content, user_id, status, entity, solved_at) VALUES ('Outdated Info in Workers Post', 'The D1 connections limit is stated as 10 in the post, but the modern limit has been raised to 100.', (SELECT id FROM user WHERE email = 'reporter@gmail.com'), 'pending', 'post', NULL);`,
+        `INSERT INTO subscriber (email, name, delete_at, note) VALUES ('subscriber.alice@example.com', 'Alice Smith', NULL, 'Subscribed via landing page');`,
+        `INSERT INTO subscriber (email, name, delete_at, note) VALUES ('subscriber.bob@example.com', 'Bob Johnson', NULL, 'Subscribed via footer');`,
+        `INSERT INTO subscriber (email, name, delete_at, note) VALUES ('charlie.unsubscribed@example.com', 'Charlie Brown', ${now}, 'Unsubscribed on newsletter');`,
+    ].join('\n');
+}
+
+async function seedLocal(sqlText: string) {
+    const dbUrl =
+        (drizzleConfig as any)?.dbCredentials?.url ||
+        './.wrangler/state/v3/d1/database.sqlite';
+    const dbPath = path.resolve(process.cwd(), dbUrl);
+
+    console.log(`Connecting to local SQLite database at: ${dbPath}`);
+
+    // @ts-ignore
+    const better = await import('better-sqlite3').catch(() => null);
+    if (!better) {
+        throw new Error(
+            'No better-sqlite3 database driver found. Please run: bun install better-sqlite3 --save-dev'
+        );
+    }
+
+    const Database = (better as any).default ?? better;
+    const db = new Database(dbPath);
+    db.pragma('foreign_keys = ON');
+    db.exec(sqlText);
+    db.close();
+}
+
+async function seedRemote(sqlText: string) {
+    const tempFile = path.join(os.tmpdir(), `blogging-d1-seed-${Date.now()}.sql`);
+
     try {
-        const dbUrl =
-            (drizzleConfig as any)?.dbCredentials?.url ||
-            './.wrangler/state/v3/d1/database.sqlite';
-        const dbPath = path.resolve(process.cwd(), dbUrl);
+        fs.writeFileSync(tempFile, sqlText, 'utf8');
+        const bunxCommand = process.platform === 'win32' ? 'bunx.cmd' : 'bunx';
+        const argsToPass = ['wrangler', 'd1', 'execute', databaseName, '--remote', '--file', tempFile];
 
-        console.log(`Connecting to database sqlite file at: ${dbPath}`);
-
-        // Try to load a sqlite client that's available in this environment.
-        // @ts-ignore
-        const better = await import('better-sqlite3').catch(() => null);
-        if (!better) {
-            throw new Error(
-                'No better-sqlite3 database driver found. Please run: bun install better-sqlite3 --save-dev'
-            );
+        if (isDryRun) {
+            console.log('Dry run:');
+            console.log(`$ ${bunxCommand} ${argsToPass.join(' ')}`);
+            return;
         }
 
-        const Database = (better as any).default ?? better;
-        const db = new Database(dbPath);
+        console.log(`Seeding remote D1 database '${databaseName}' via Wrangler...`);
+        execFileSync(bunxCommand, argsToPass, {
+            cwd: process.cwd(),
+            stdio: 'inherit'
+        });
+    } finally {
+        if (fs.existsSync(tempFile)) {
+            fs.unlinkSync(tempFile);
+        }
+    }
+}
 
-        // Turn on foreign keys enforcement
-        db.pragma('foreign_keys = ON');
-
-        // Clean tables to start fresh
-        console.log('Cleaning existing tables...');
-        db.prepare('DELETE FROM post_tag').run();
-        db.prepare('DELETE FROM post_collection').run();
-        db.prepare('DELETE FROM tag').run();
-        db.prepare('DELETE FROM collection').run();
-        db.prepare('DELETE FROM comment').run();
-        db.prepare('DELETE FROM report').run();
-        db.prepare('DELETE FROM subscriber').run();
-        db.prepare('DELETE FROM post').run();
-        db.prepare('DELETE FROM user_role').run();
-        db.prepare('DELETE FROM user').run();
-
-        // Prepare statements
-        const insertUser = db.prepare(
-            'INSERT INTO user (email, name, nickName, password, active, approve) VALUES (?, ?, ?, ?, ?, ?)'
-        );
-        const insertRole = db.prepare(
-            'INSERT INTO user_role (user_id, role) VALUES (?, ?)'
-        );
-        const insertTag = db.prepare(
-            'INSERT INTO tag (name, slug) VALUES (?, ?)'
-        );
-        const insertCollection = db.prepare(
-            'INSERT INTO collection (name, description, thumbnail) VALUES (?, ?, ?)'
-        );
-        const insertPost = db.prepare(
-            'INSERT INTO post (title, content, slug, author_id, banner, status, published_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        );
-        const insertPostTag = db.prepare(
-            'INSERT INTO post_tag (tag_id, post_id) VALUES (?, ?)'
-        );
-        const insertPostCollection = db.prepare(
-            'INSERT INTO post_collection (post_id, collection_id) VALUES (?, ?)'
-        );
-        const insertComment = db.prepare(
-            'INSERT INTO comment (content, status, user_id, post_id) VALUES (?, ?, ?, ?)'
-        );
-        const insertReport = db.prepare(
-            'INSERT INTO report (title, content, user_id, status, entity, solved_at) VALUES (?, ?, ?, ?, ?, ?)'
-        );
-        const insertSubscriber = db.prepare(
-            'INSERT INTO subscriber (email, name, delete_at, note) VALUES (?, ?, ?, ?)'
-        );
-
-        // 1. Seed Users & Roles
-        console.log('Seeding users...');
-        const userPassword = await hashPass('cloudian123');
-
-        // Admin User
-        const adminResult = insertUser.run(
-            'admin@gmail.com',
-            'Admin User',
-            'admin',
-            userPassword,
-            1,
-            1
-        );
-        const adminId = adminResult.lastInsertRowid;
-        insertRole.run(adminId, 'admin');
-        insertRole.run(adminId, 'manager');
-        insertRole.run(adminId, 'user');
-
-        // Manager User
-        const managerResult = insertUser.run(
-            'manager@gmail.com',
-            'Manager User',
-            'manager',
-            userPassword,
-            1,
-            1
-        );
-        const managerId = managerResult.lastInsertRowid;
-        insertRole.run(managerId, 'manager');
-        insertRole.run(managerId, 'user');
-
-        // Regular User
-        const normalUserResult = insertUser.run(
-            'user@gmail.com',
-            'Regular User',
-            'user',
-            userPassword,
-            1,
-            1
-        );
-        const userId = normalUserResult.lastInsertRowid;
-        insertRole.run(userId, 'user');
-
-        // Reporter User
-        const reporterResult = insertUser.run(
-            'reporter@gmail.com',
-            'Reporter User',
-            'reporter',
-            userPassword,
-            1,
-            1
-        );
-        const reporterId = reporterResult.lastInsertRowid;
-        insertRole.run(reporterId, 'user');
-
-        // 2. Seed Tags
-        console.log('Seeding tags...');
-        const tagTech = insertTag.run(
-            'Technology',
-            'technology'
-        ).lastInsertRowid;
-        const tagProg = insertTag.run(
-            'Programming',
-            'programming'
-        ).lastInsertRowid;
-        const tagServerless = insertTag.run(
-            'Serverless',
-            'serverless'
-        ).lastInsertRowid;
-        const tagHono = insertTag.run(
-            'Hono Framework',
-            'hono-framework'
-        ).lastInsertRowid;
-
-        // 3. Seed Collections
-        console.log('Seeding collections...');
-        const colBackend = insertCollection.run(
-            'Backend Masterclass',
-            'Learn how to build high performance backends using Hono, Drizzle, and TypeScript.',
-            'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg'
-        ).lastInsertRowid;
-
-        const colServerless = insertCollection.run(
-            'Going Serverless',
-            'Deep dive into Cloudflare Workers, KV, D1, and R2 bindings.',
-            'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg'
-        ).lastInsertRowid;
-
-        // 4. Seed Posts
-        console.log('Seeding posts...');
+async function main() {
+    try {
         const now = Date.now();
+        const userPassword = await hashPass('cloudian123');
+        const sqlText = buildSeedSql(userPassword, now);
 
-        // Post 1: Hono
-        const postHonoId = insertPost.run(
-            'Building Fast APIs with Hono',
-            'Hono is a small, simple, and ultrafast web framework built for Cloudflare Workers, Bun, and other JavaScript runtimes. In this article, we explore the basics of routing, middleware, and request validation...',
-            'building-fast-apis-with-hono',
-            adminId,
-            'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg',
-            'published',
-            now
-        ).lastInsertRowid;
-
-        // Post 2: Workers
-        const postWorkersId = insertPost.run(
-            'Deploying Serverless Backends on Cloudflare Workers',
-            'Cloudflare Workers offer an incredibly cheap and performant way to run code at the edge. We will guide you through connecting a Worker to a D1 SQLite database, running schema migrations, and handling requests.',
-            'deploying-serverless-backends-on-cloudflare-workers',
-            managerId,
-            'https://res.cloudinary.com/demo/image/upload/v1619098909/sample.jpg',
-            'published',
-            now
-        ).lastInsertRowid;
-
-        // Post 3: Draft post
-        const postDraftId = insertPost.run(
-            'Deploying Next.js on Cloudflare Pages',
-            'This is a draft post detailing the deploy step of a Next.js frontend to Cloudflare Pages. It is currently under editing review.',
-            'deploying-nextjs-on-cloudflare-pages',
-            adminId,
-            null,
-            'draft',
-            null
-        ).lastInsertRowid;
-
-        // Map posts to tags
-        insertPostTag.run(tagTech, postHonoId);
-        insertPostTag.run(tagHono, postHonoId);
-        insertPostTag.run(tagTech, postWorkersId);
-        insertPostTag.run(tagServerless, postWorkersId);
-
-        // Map posts to collections
-        insertPostCollection.run(postHonoId, colBackend);
-        insertPostCollection.run(postWorkersId, colServerless);
-
-        // 5. Seed Comments
-        console.log('Seeding comments...');
-        insertComment.run(
-            'This is an amazing framework! Built my first API in 5 minutes.',
-            'active',
-            userId,
-            postHonoId
-        );
-        insertComment.run(
-            'Is this production ready? Can we run it on Node environments too?',
-            'active',
-            reporterId,
-            postHonoId
-        );
-        insertComment.run(
-            'Yes, Hono supports Node.js, Bun, Deno, and Cloudflare Workers seamlessly!',
-            'active',
-            adminId,
-            postHonoId
-        );
-        const spamCommentId = insertComment.run(
-            'Buy cheap stocks option links here!!! http://spam-links.com',
-            'invalid',
-            reporterId,
-            postHonoId
-        ).lastInsertRowid;
-
-        // 6. Seed Reports
-        console.log('Seeding reports...');
-        // Solved report (reporting the spam comment)
-        insertReport.run(
-            'Spam Comment Report',
-            `The comment with ID ${spamCommentId} contains unsolicited financial spam links.`,
-            userId,
-            'solved',
-            'comment',
-            now
-        );
-
-        // Pending report (reporting incorrect content in Workers post)
-        insertReport.run(
-            'Outdated Info in Workers Post',
-            `The D1 connections limit is stated as 10 in the post, but the modern limit has been raised to 100.`,
-            reporterId,
-            'pending',
-            'post',
-            null
-        );
-
-        // 7. Seed Subscribers
-        console.log('Seeding subscribers...');
-        insertSubscriber.run(
-            'subscriber.alice@example.com',
-            'Alice Smith',
-            null,
-            'Subscribed via landing page'
-        );
-        insertSubscriber.run(
-            'subscriber.bob@example.com',
-            'Bob Johnson',
-            null,
-            'Subscribed via footer'
-        );
-        insertSubscriber.run(
-            'charlie.unsubscribed@example.com',
-            'Charlie Brown',
-            now,
-            'Unsubscribed on newsletter'
-        );
+        if (isRemote) {
+            await seedRemote(sqlText);
+        } else {
+            await seedLocal(sqlText);
+        }
 
         console.log('Seeding completed successfully!');
-        db.close();
     } catch (err) {
         console.error('Seeding failed:', err);
         process.exit(1);

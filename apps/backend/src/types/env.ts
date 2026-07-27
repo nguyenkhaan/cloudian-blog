@@ -1,8 +1,10 @@
 import { createDb } from '@/db/index';
 import { AccessJwtPayload } from './jwt';
 import type { Redis } from '@upstash/redis'
+import type { BrowserWorker } from '@cloudflare/puppeteer';
 export type AppEnv = {
     Bindings: {
+        MY_BROWSER: BrowserWorker; 
         //Binding nay chinh la khai bao cac bien moi truong, hono se dua vao day va tien hanh lay ra gia tri cac bein moi truong tuong ung trong file .env
         blogging_database: D1Database;
         JWT_ACCESS_SECRET: string;

@@ -1,6 +1,8 @@
 //https://docs.langchain.com/oss/javascript/langchain/overview
 import { cloudinary } from '@/core/cloudianry.config';
 import { createDb } from '@/db';
+import { convertPdf } from '@/helper/htmlToPdf';
+import { generateRandomString } from '@/helper/randomString';
 import {
     CollectionModel,
     PostCollectionModel,
@@ -10,6 +12,7 @@ import {
     TagModel,
     UserModel,
     Role,
+    DownloadPostModel,
 } from '@/model';
 import {
     CreatePostDtoType,
@@ -18,9 +21,9 @@ import {
     GetUserPostsQueryType,
     UpdatePostDtoType,
 } from '@/schema/post.schema';
+import type { BrowserWorker } from '@cloudflare/puppeteer';
 import { and, desc, eq, inArray, SQL } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { displayPartsToString } from 'typescript';
 
 export async function getAllPost(
     db: ReturnType<typeof createDb>,
@@ -226,7 +229,7 @@ export async function createPost(
             .values({
                 title: data.title,
                 content: data.content,
-                summary: data.summary,
+                summary: data.summary || '',
                 banner: data.banner, //Fallback ve du lieu binh thuong
                 slug: data.slug,
                 status: PostStatus.DRAFT,
@@ -602,5 +605,51 @@ export async function updatePostStatus(
     } catch (err) {
         console.log('Update post status error: ', err);
         throw err;
+    }
+}
+
+export const downloadPost = async (db : ReturnType<typeof createDb> , postId : number, userId : number , browser : BrowserWorker) => {
+    try 
+    {
+        const user = await db.query.UserModel.findFirst({
+            where: and(
+                eq(UserModel.id , userId), 
+                eq(UserModel.active , 1)
+            ), 
+            columns: {
+                id : true 
+            }
+        })
+        const post = await db.query.PostModel.findFirst({
+            where: and(
+                eq(PostModel.id , postId), 
+                eq(PostModel.status , PostStatus.PUBLISHED)
+            ), 
+            columns: {
+                id: true, 
+                content: true 
+            }
+        }) 
+        if (!post || !user) 
+            throw new HTTPException(
+                400, {
+                    message: "This post cannot be download or download request is invalid" 
+                }
+            )
+        // Luu tru du lieu vao ben trong database 
+        await db.insert(DownloadPostModel).values({
+            postId: post.id, 
+            userId: user.id 
+        })
+        const fileName = generateRandomString(8)
+        const pdf = await convertPdf(post.content , browser)
+        return {
+            fileName, 
+            pdf 
+        }
+    } 
+    catch (err) {
+        console.log("download error: " , err) 
+        throw err 
     }
 }

@@ -9,6 +9,7 @@ import { ChatMessageModel } from './chatMessage';
 import { ChatSessionModel } from './chatSession';
 import { CommentModel } from './comment';
 import { OAuthModel } from './provider';
+import { DownloadPostModel } from './downloadPost';
 
 export const UserRelations = relations(UserModel, ({ one, many }) => {
     return {
@@ -19,6 +20,7 @@ export const UserRelations = relations(UserModel, ({ one, many }) => {
         sessions: many(ChatSessionModel),
         comments: many(CommentModel),
         oauths: many(OAuthModel),
+        downloadPosts : many(DownloadPostModel)
     };
 });
 
@@ -40,6 +42,7 @@ export const PostRelations = relations(PostModel, ({ one, many }) => {
         postCollections: many(PostCollectionModel),
         postTags: many(PostTagModel),
         comments: many(CommentModel),
+        downloadPosts: many(DownloadPostModel)
     };
 });
 
@@ -149,3 +152,16 @@ export const OAuthProviderRelations = relations(OAuthModel, ({ one, many }) => {
         }),
     };
 });
+
+export const DownloadModelRelations = relations(DownloadPostModel , ({ one , many }) => {
+    return {
+        user: one(UserModel , {
+            fields: [DownloadPostModel.userId], 
+            references: [UserModel.id]
+        }), 
+        post: one(PostModel , {
+            fields: [DownloadPostModel.userId], 
+            references: [PostModel.id]
+        })
+    }
+})

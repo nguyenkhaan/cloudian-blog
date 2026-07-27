@@ -57,7 +57,7 @@ app.get(
                 description: 'Cloudian API documet',
             },
             servers: [
-                { url: 'http://localhost:3000', description: 'Local Server' },
+                { url: 'http://localhost:8787', description: 'Local Server' },
             ],
         },
     })

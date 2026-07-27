@@ -12,3 +12,4 @@ export * from './comment';
 export * from './chatMessage';
 export * from './chatSession';
 export * from './report';
+export * from './downloadPost'

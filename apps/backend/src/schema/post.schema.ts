@@ -83,6 +83,10 @@ export const DeletePostParam = z.object({
     postId: z.string(),
 });
 
+export const DownloadPostParam = z.object({
+    postId : z.string() 
+})
+
 export type GetAllPostQueryType = z.infer<typeof GetAllPostsQuery>;
 export type GetAllAdminPostQueryType = z.infer<typeof GetAllAdminPostQuery>;
 export type CreatePostDtoType = z.infer<typeof CreatePostDto>;

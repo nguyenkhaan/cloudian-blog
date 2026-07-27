@@ -1,12 +1,16 @@
 {
     "name": "backend",
     "scripts": {
-        "dev": "bunx wrangler dev --port 3000",
+        "dev": "bunx wrangler dev --port 8787",
         "studio": "bunx drizzle-kit studio",
-        "seed": "bunx tsx src/seed.ts",
-        "migrate": "bunx wrangler d1 migrations apply blogging-database"
+        "seed": "bunx tsx src/seed.ts --local",
+        "seed:remote": "bunx tsx src/seed.ts --remote",
+        "seed:remote:dry-run": "bunx tsx src/seed.ts --remote --dry-run",
+        "migrate": "bunx wrangler d1 migrations apply blogging-database",
+        "migrate:remote": "bunx wrangler d1 migrations apply blogging-database --remote"
     },
     "dependencies": {
+        "@cloudflare/puppeteer": "^1.1.0",
         "@hono/standard-validator": "^0.2.3",
         "@hono/zod-validator": "^0.8.0",
         "@langchain/core": "^1.2.3",
