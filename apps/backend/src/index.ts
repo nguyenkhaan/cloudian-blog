@@ -19,7 +19,19 @@ import ReportRoute from '@/controller/report.controller';
 import SubscriberRoute from '@/controller/subscriber.controller';
 import ChatRoute from '@/controller/chat.controller';
 import { redisMiddleware } from './middleware/redis.middleware';
+import { cors } from 'hono/cors'
+
 const app = new Hono<AppEnv>();
+
+// Define cors 
+app.use('*', cors({
+    origin: [
+        'http://localhost:5173', 
+        'https://zea.cloudian.io.vn'
+    ]
+}))
+
+
 app.use('*', databaseMiddleware);
 app.use('*' , redisMiddleware)
 app.notFound((c: Context) => {

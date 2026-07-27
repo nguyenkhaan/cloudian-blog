@@ -23,6 +23,7 @@ import { DashboardManagers } from '../components/dashboard/DashboardManagers';
 import { DashboardUsers } from '../components/dashboard/DashboardUsers';
 import { DashboardMyBlogs } from '../components/dashboard/DashboardMyBlogs';
 import { DashboardProfile } from '../components/dashboard/DashboardProfile';
+import { DashboardTaxonomy } from '../components/dashboard/DashboardTaxonomy';
 import {
   User,
   BookOpen,
@@ -34,14 +35,16 @@ import {
   UserPlus,
   ArrowLeft,
   Menu,
-  X
+  X,
+  FolderPlus
 } from 'lucide-react';
 
-type TabType = 'reports' | 'blogs' | 'managers' | 'users' | 'my_blogs' | 'profile';
+type TabType = 'reports' | 'blogs' | 'taxonomy' | 'managers' | 'users' | 'my_blogs' | 'profile';
 
 const tabToParamMap: Record<TabType, string> = {
   reports: 'reports',
   blogs: 'blog-management',
+  taxonomy: 'taxonomy',
   managers: 'managers',
   users: 'users',
   my_blogs: 'my-blogs',
@@ -53,6 +56,7 @@ const paramToTabMap: Record<string, TabType> = {
   'abuse-reports': 'reports',
   'blog-management': 'blogs',
   'blogs': 'blogs',
+  'taxonomy': 'taxonomy',
   'managers': 'managers',
   'users': 'users',
   'my-blogs': 'my_blogs',
@@ -596,6 +600,22 @@ export const Dashboard: React.FC = () => {
  
                 <button
                   onClick={() => {
+                    handleTabChange('taxonomy');
+                    setSolvingReport(null);
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3.5 px-4.5 py-3.5 rounded-xl text-sm font-black transition-all cursor-pointer ${
+                    activeTab === 'taxonomy'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <FolderPlus className="w-5 h-5" />
+                  <span>Tags & Collections</span>
+                </button>
+
+                <button
+                  onClick={() => {
                     handleTabChange('managers');
                     setSolvingReport(null);
                     setIsSidebarOpen(false);
@@ -642,7 +662,7 @@ export const Dashboard: React.FC = () => {
                 }`}
               >
                 <BookOpen className="w-5 h-5" />
-                <span>Blog Management</span>
+                <span>My Blogs</span>
               </button>
             )}
  
@@ -681,7 +701,7 @@ export const Dashboard: React.FC = () => {
       </aside>
 
       {/* RIGHT MAIN CONTENT */}
-      <main className="flex-grow p-6 md:p-8 space-y-8 overflow-y-auto">
+      <main className="grow p-6 md:p-8 space-y-8 overflow-y-auto">
         
         {/* Error notification bar */}
         {error && (
@@ -718,6 +738,10 @@ export const Dashboard: React.FC = () => {
             handleToggleBlogStatus={handleToggleBlogStatus}
             handleDeleteBlog={handleDeleteBlog}
           />
+        )}
+
+        {activeTab === 'taxonomy' && isAdmin && (
+          <DashboardTaxonomy />
         )}
 
         {activeTab === 'managers' && isAdmin && (

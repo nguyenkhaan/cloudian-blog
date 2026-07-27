@@ -35,6 +35,26 @@ export const getTagsApi = async (): Promise<Tag[]> => {
   return response.data;
 };
 
+export const createTagApi = async (data: { name: string; slug: string }): Promise<{ success: boolean; tagId: number }> => {
+  const response = await client.post<{ success: boolean; tagId: number }>('/tags', data);
+  return response.data;
+};
+
+export const deleteTagApi = async (tagId: number): Promise<{ success: boolean }> => {
+  const response = await client.delete<{ success: boolean }>(`/tags/${tagId}`);
+  return response.data;
+};
+
+export const createCollectionApi = async (data: { name: string; description?: string; thumbnail?: string }): Promise<{ success: boolean; collectionId: number }> => {
+  const response = await client.post<{ success: boolean; collectionId: number }>('/collections', data);
+  return response.data;
+};
+
+export const deleteCollectionApi = async (collectionId: number): Promise<{ success: boolean }> => {
+  const response = await client.delete<{ success: boolean }>(`/collections/${collectionId}`);
+  return response.data;
+};
+
 export const getManagerPostsApi = async (): Promise<Post[]> => {
   const response = await client.get<Post[]>('/posts/me');
   return response.data;

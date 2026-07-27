@@ -7,6 +7,9 @@ export interface Tag {
 export interface Collection {
   id: number;
   name: string;
+  description?: string | null;
+  thumbnail?: string | null;
+  postCount?: number;
 }
 
 export interface PostAuthor {
