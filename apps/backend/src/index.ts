@@ -26,7 +26,8 @@ const app = new Hono<AppEnv>();
 // Define cors 
 app.use('*', cors({
     origin: [
-        'http://localhost:5173', 
+        'http://localhost:5173', // FE development environment 
+        'http://localhost:8788',  // FE preview production environment 
         'https://zea.cloudian.io.vn'
     ]
 }))

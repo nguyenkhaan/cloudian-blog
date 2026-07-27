@@ -5,7 +5,6 @@ import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // Tải các biến môi trường từ .env dựa theo mode (development/production)
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
@@ -15,10 +14,12 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
+    // Đảm bảo đường dẫn tương đối đúng khi chạy trên các môi trường hosting
+    base: '/',
     server: {
       proxy: {
         '/api': {
-          // Lấy URL từ file .env, nếu không có sẽ fallback về localhost:8787
+          // Chỉ hoạt động khi chạy dev (bun run dev)
           target: env.VITE_API_TARGET || 'http://localhost:8787',
           changeOrigin: true,
         },

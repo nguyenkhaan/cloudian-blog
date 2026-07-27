@@ -83,11 +83,14 @@ export const PostEditor: React.FC = () => {
         initialTitleRef.current = post.title;
         initialContentRef.current = post.content;
 
-        if (post.collections && post.collections.length > 0) {
-          setSelectedCollectionIds(post.collections.map((c) => c.id));
+        const safeCollections = Array.isArray(post.collections) ? post.collections : [];
+        const safeTags = Array.isArray(post.tags) ? post.tags : [];
+
+        if (safeCollections.length > 0) {
+          setSelectedCollectionIds(safeCollections.map((c) => c.id));
         }
-        if (post.tags && post.tags.length > 0) {
-          setSelectedTagIds(post.tags.map((t) => t.id));
+        if (safeTags.length > 0) {
+          setSelectedTagIds(safeTags.map((t) => t.id));
         }
       } catch (err) {
         toast({

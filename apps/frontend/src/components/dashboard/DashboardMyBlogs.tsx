@@ -17,6 +17,7 @@ export const DashboardMyBlogs: React.FC<DashboardMyBlogsProps> = ({
   handleDeleteBlog
 }) => {
   const navigate = useNavigate();
+  const safeManagerPosts = Array.isArray(managerPosts) ? managerPosts : [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -38,7 +39,7 @@ export const DashboardMyBlogs: React.FC<DashboardMyBlogsProps> = ({
         <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 shadow-none">
           <TableSkeleton rows={5} cols={4} />
         </div>
-      ) : managerPosts.length === 0 ? (
+      ) : safeManagerPosts.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-card border border-dashed border-slate-200 dark:border-border p-8 rounded-2xl">
           <FolderOpen className="w-10 h-10 text-slate-355 mx-auto mb-3" />
           <p className="font-bold text-slate-600 dark:text-slate-400 text-base">No posts found</p>
@@ -60,7 +61,7 @@ export const DashboardMyBlogs: React.FC<DashboardMyBlogsProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-border/50 text-sm text-slate-700 dark:text-slate-300">
-                {managerPosts.map((post) => (
+                {safeManagerPosts.map((post) => (
                   <tr key={post.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4 max-w-xs">
                       <span className="font-bold text-slate-850 dark:text-foreground line-clamp-2">{post.title}</span>
@@ -68,7 +69,7 @@ export const DashboardMyBlogs: React.FC<DashboardMyBlogsProps> = ({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {post.collections && post.collections.length > 0 ? (
+                        {Array.isArray(post.collections) && post.collections.length > 0 ? (
                           post.collections.map((col) => (
                             <span key={col.id} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase text-slate-650 dark:text-slate-350">
                               {col.name}

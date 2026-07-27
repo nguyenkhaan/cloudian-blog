@@ -1,13 +1,17 @@
 import axios from 'axios';
-
+const API_TARGET = import.meta.env.VITE_API_TARGET || 'http://localhost:8787';
+const isDev = import.meta.env.DEV
+const BASE_URL = isDev ? '/api' : `${API_TARGET}/api`;
+console.log(BASE_URL)
 const client = axios.create({
-  baseURL: '/api',
+  
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request Interceptor: Attach JWT token
+
 client.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');

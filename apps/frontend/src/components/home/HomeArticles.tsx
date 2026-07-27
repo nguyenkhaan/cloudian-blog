@@ -11,8 +11,19 @@ interface HomeArticlesProps {
 
 export const HomeArticles: React.FC<HomeArticlesProps> = ({ posts, isLoading }) => {
   const { toast } = useToast();
-  const spotlightPost = posts[0];
-  const secondaryPosts = posts.slice(1);
+  const safePosts = Array.isArray(posts) ? posts : [];
+  const spotlightPost = safePosts[0];
+  const secondaryPosts = safePosts.slice(1);
+
+  const getSafeCollections = (post: Post) => {
+    const collections = post.collections;
+    return Array.isArray(collections) ? collections : [];
+  };
+
+  const getSafeTags = (post: Post) => {
+    const tags = post.tags;
+    return Array.isArray(tags) ? tags : [];
+  };
 
   const handleCopyLink = (slugOrId: string) => {
     const url = `${window.location.origin}/posts/${slugOrId}`;
@@ -39,7 +50,7 @@ export const HomeArticles: React.FC<HomeArticlesProps> = ({ posts, isLoading }) 
           <Loader2 className="w-10 h-10 text-primary animate-spin" />
           <span className="text-slate-400 text-base font-extrabold">Loading blogs...</span>
         </div>
-      ) : posts.length === 0 ? (
+      ) : safePosts.length === 0 ? (
         <div className="text-center py-24 bg-white dark:bg-card border border-dashed border-slate-300 dark:border-border p-8 rounded-2xl">
           <p className="text-slate-550 dark:text-muted-foreground font-black text-base">No blogs found.</p>
         </div>
@@ -48,15 +59,15 @@ export const HomeArticles: React.FC<HomeArticlesProps> = ({ posts, isLoading }) 
           {/* Massive Spotlight Post spanning full layout width */}
           {spotlightPost && (
             <article className="border border-slate-355 dark:border-border rounded-2xl overflow-hidden bg-white dark:bg-card transition-all duration-300 flex flex-col lg:flex-row group shadow-none animate-fade-up">
-              <div className="lg:w-3/5 bg-slate-50 dark:bg-background relative overflow-hidden min-h-[300px] lg:border-r border-slate-200 dark:border-border">
+              <div className="lg:w-3/5 bg-slate-50 dark:bg-background relative overflow-hidden min-h-75 lg:border-r border-slate-200 dark:border-border">
                 <img
                   src={spotlightPost.banner || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=80'}
                   alt={spotlightPost.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-101"
                 />
-                {spotlightPost.collections && spotlightPost.collections.length > 0 && (
+                {getSafeCollections(spotlightPost).length > 0 && (
                   <div className="absolute top-5 left-5 flex flex-wrap gap-2">
-                    {spotlightPost.collections.slice(0, 2).map(c => (
+                    {getSafeCollections(spotlightPost).slice(0, 2).map(c => (
                       <span key={c.id} className="bg-primary text-white text-xs font-black px-4 py-2 rounded-xl uppercase tracking-wider shadow-none">
                         {c.name}
                       </span>
@@ -99,7 +110,7 @@ export const HomeArticles: React.FC<HomeArticlesProps> = ({ posts, isLoading }) 
                     </Link>
                     
                     <div className="flex items-center gap-2.5">
-                      <button onClick={() => handleCopyLink(spotlightPost.slug || spotlightPost.id.toString())} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:text-primary transition-colors cursor-pointer border-0 bg-transparent" title="Copy Link">
+                      <button onClick={() => handleCopyLink(spotlightPost.slug || spotlightPost.id.toString())} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:text-primary transition-colors cursor-pointer border-0" title="Copy Link">
                         <Share2 className="w-4 h-4 text-black dark:text-foreground" />
                       </button>
                     </div>
@@ -118,15 +129,15 @@ export const HomeArticles: React.FC<HomeArticlesProps> = ({ posts, isLoading }) 
                   index % 3 === 0 ? 'delay-75' : index % 3 === 1 ? 'delay-150' : 'delay-300'
                 }`}
               >
-                <div className="aspect-[16/10] w-full bg-slate-50 dark:bg-background relative overflow-hidden border-b border-slate-200 dark:border-border">
+                <div className="aspect-16/10 w-full bg-slate-50 dark:bg-background relative overflow-hidden border-b border-slate-200 dark:border-border">
                   <img
                     src={post.banner || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=80'}
                     alt={post.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-101"
                   />
-                  {post.collections && post.collections.length > 0 && (
+                  {getSafeCollections(post).length > 0 && (
                     <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
-                      {post.collections.slice(0, 2).map(c => (
+                      {getSafeCollections(post).slice(0, 2).map(c => (
                         <span key={c.id} className="bg-primary text-white text-[10px] font-black px-3.5 py-1.5 rounded-xl uppercase tracking-wider shadow-none">
                           {c.name}
                         </span>
@@ -134,7 +145,7 @@ export const HomeArticles: React.FC<HomeArticlesProps> = ({ posts, isLoading }) 
                     </div>
                   )}
                 </div>
-                <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
+                <div className="p-6 grow flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
                     <Link to={`/posts/${post.slug || post.id}`} className="block">
                       <h4 className="text-lg font-black font-heading text-black dark:text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
@@ -142,7 +153,7 @@ export const HomeArticles: React.FC<HomeArticlesProps> = ({ posts, isLoading }) 
                       </h4>
                     </Link>
                     <div className="flex flex-wrap gap-1.5">
-                      {post.tags.map(t => (
+                      {getSafeTags(post).map(t => (
                         <span key={t.id} className="text-[10px] bg-slate-100 dark:bg-background px-2.5 py-1 rounded-md text-black dark:text-slate-350 font-bold">
                           #{t.name}
                         </span>

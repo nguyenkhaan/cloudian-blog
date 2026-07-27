@@ -1,6 +1,17 @@
 import type { Post, PostDetail, Collection, Tag } from '../types/post';
 import client from './client';
 
+const normalizeArray = <T>(value: unknown): T[] => {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === 'object') {
+    const candidate = value as Record<string, unknown>;
+    if (Array.isArray(candidate.items)) return candidate.items as T[];
+    if (Array.isArray(candidate.data)) return candidate.data as T[];
+    if (Array.isArray(candidate.posts)) return candidate.posts as T[];
+  }
+  return [];
+};
+
 export const getPostsApi = async (params?: {
   tag?: string;
   collection?: string;
@@ -8,31 +19,48 @@ export const getPostsApi = async (params?: {
   limit?: number;
   offset?: number;
 }): Promise<Post[]> => {
-  const response = await client.get<Post[]>('/posts', { params });
-  return response.data;
+  const response = await client.get<unknown>('/posts', { params });
+  return normalizeArray<Post>(response.data);
 };
 
 export const getAdminPostsApi = async (params?: {
   limit?: number;
   offset?: number;
 }): Promise<Post[]> => {
-  const response = await client.get<Post[]>('/posts/admin', { params });
-  return response.data;
+  const response = await client.get<unknown>('/posts/admin', { params });
+  return normalizeArray<Post>(response.data);
 };
 
 export const getPostDetailApi = async (slugOrId: string): Promise<PostDetail> => {
-  const response = await client.get<PostDetail>(`/posts/${slugOrId}`);
-  return response.data;
+  const response = await client.get<unknown>(`/posts/${slugOrId}`);
+  const data = response.data as Partial<PostDetail> | undefined;
+  const safeData = data ?? {};
+  const normalized = {
+    id: 0,
+    title: '',
+    content: '',
+    slug: '',
+    status: 'draft',
+    tags: [],
+    collections: [],
+    ...safeData,
+  } as PostDetail;
+
+  return {
+    ...normalized,
+    tags: normalizeArray<{ id: number; name: string }>(safeData.tags),
+    collections: normalizeArray<{ id: number; name: string }>(safeData.collections),
+  } as PostDetail;
 };
 
 export const getCollectionsApi = async (): Promise<Collection[]> => {
-  const response = await client.get<Collection[]>('/collections');
-  return response.data;
+  const response = await client.get<unknown>('/collections');
+  return normalizeArray<Collection>(response.data);
 };
 
 export const getTagsApi = async (): Promise<Tag[]> => {
-  const response = await client.get<Tag[]>('/tags');
-  return response.data;
+  const response = await client.get<unknown>('/tags');
+  return normalizeArray<Tag>(response.data);
 };
 
 export const createTagApi = async (data: { name: string; slug: string }): Promise<{ success: boolean; tagId: number }> => {
@@ -56,8 +84,8 @@ export const deleteCollectionApi = async (collectionId: number): Promise<{ succe
 };
 
 export const getManagerPostsApi = async (): Promise<Post[]> => {
-  const response = await client.get<Post[]>('/posts/me');
-  return response.data;
+  const response = await client.get<unknown>('/posts/me');
+  return normalizeArray<Post>(response.data);
 };
 
 export interface CreatePostPayload {

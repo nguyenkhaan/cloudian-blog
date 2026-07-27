@@ -17,6 +17,8 @@ export const BlogFilters: React.FC<BlogFiltersProps> = ({
   handleCollectionSelect,
   collections
 }) => {
+  const safeCollections = Array.isArray(collections) ? collections : [];
+
   return (
     <section className="space-y-6 bg-slate-50 dark:bg-card/30 p-6 rounded-2xl border border-slate-200 dark:border-border transition-colors duration-300">
       <div className="relative w-full max-w-xl">
@@ -42,7 +44,7 @@ export const BlogFilters: React.FC<BlogFiltersProps> = ({
         >
           All Topics
         </button>
-        {collections.map((col) => (
+        {safeCollections.map((col) => (
           <button
             key={col.id}
             onClick={() => handleCollectionSelect(col.id)}
