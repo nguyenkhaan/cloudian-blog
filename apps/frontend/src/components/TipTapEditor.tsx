@@ -2,6 +2,14 @@ import React, { useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import ImageExtension from '@tiptap/extension-image';
+import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
+import { createLowlight } from 'lowlight';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import python from 'highlight.js/lib/languages/python';
+import css from 'highlight.js/lib/languages/css';
+import html from 'highlight.js/lib/languages/xml';
+import 'highlight.js/styles/atom-one-dark-reasonable.css';
 import axios from 'axios';
 import { getUploadSignatureApi } from '../api/post';
 import { Button } from './ui/button';
@@ -30,6 +38,24 @@ interface TipTapEditorProps {
 }
 const MAX_FILE_SIZE = 1.2 * 1024 * 1024
 
+const lowlight = createLowlight();
+
+lowlight.register('javascript', javascript);
+lowlight.register('typescript', typescript);
+lowlight.register('python', python);
+lowlight.register('css', css);
+lowlight.register('html', html);
+
+const CODE_LANGUAGES = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'css', label: 'CSS' },
+  { value: 'html', label: 'HTML' },
+] as const;
+
+type CodeLanguage = typeof CODE_LANGUAGES[number]['value'];
+
 export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   content,
   onChange,
@@ -39,6 +65,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [codeLanguage, setCodeLanguage] = useState<CodeLanguage>('javascript');
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -48,6 +76,9 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
         },
       }),
       ImageExtension,
+      CodeBlockLowlight.configure({
+        lowlight,
+      }),
     ],
     content: content,
     onUpdate: ({ editor }) => {
@@ -67,6 +98,14 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   }, [content, editor]);
 
   if (!editor) return null;
+
+  const handleLanguageChange = (lang: string) => {
+    setCodeLanguage(lang as CodeLanguage);
+    if (editor.isActive('codeBlock')) {
+      editor.chain().focus().updateAttributes('codeBlock', { language: lang }).run();
+    }
+    setShowLanguageSelector(false);
+  };
 
   const handleImageUploadClick = () => {
     fileInputRef.current?.click();
@@ -239,9 +278,38 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
             <Code className="w-4 h-4" />
           </Button>
 
-          <span className="h-4 w-px bg-slate-200 mx-1"></span>
-
-          <span className="h-4 w-px bg-slate-200 mx-1 dark:bg-slate-700"></span>
+          {editor && editor.isActive('codeBlock') && (
+            <div className="relative">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLanguageSelector(!showLanguageSelector)}
+                title="Select Language"
+                className="p-1.5 rounded-lg transition-colors text-[var(--color-foreground)] hover:bg-black/5 dark:hover:bg-white/5 text-xs font-semibold min-w-[60px]"
+              >
+                {CODE_LANGUAGES.find(l => l.value === codeLanguage)?.label || 'Code'}
+              </Button>
+              {showLanguageSelector && (
+                <div className="absolute top-full left-0 mt-1 bg-white dark:bg-black border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 py-1 min-w-[120px]">
+                  {CODE_LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.value}
+                      type="button"
+                      onClick={() => handleLanguageChange(lang.value)}
+                      className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
+                        codeLanguage === lang.value
+                          ? 'bg-black/10 dark:bg-white/10 text-[var(--color-primary)]'
+                          : 'text-[var(--color-foreground)] hover:bg-black/5 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <span className="h-4 w-px bg-slate-200 mx-1 dark:bg-slate-700"></span>
 

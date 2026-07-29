@@ -216,8 +216,6 @@
   border-radius: 0.25rem;
 }
 .markdown-content pre {
-  background-color: #0d1117 !important;
-  color: #c9d1d9 !important;
   overflow-x: auto;
   border-radius: 0.5rem;
   padding: 1.25em;
@@ -226,9 +224,8 @@
   border: 1px solid var(--color-border);
 }
 .markdown-content pre code {
-  background-color: transparent !important;
-  padding: 0 !important;
-  color: inherit !important;
+  background-color: transparent;
+  padding: 0;
   font-size: 0.9em;
 }
 .markdown-content img {

@@ -23,7 +23,7 @@ export const PostDetailContent: React.FC<PostDetailContentProps> = React.memo(({
   return (
     <div className="space-y-8">
       <div
-        className="markdown-content dark:text-slate-300 text-base leading-relaxed font-medium"
+        className="markdown-content text-base leading-relaxed font-medium"
         dangerouslySetInnerHTML={{ __html: contentHtml }}
       />
 
