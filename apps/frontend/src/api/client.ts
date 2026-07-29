@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { RefreshResponse } from '../types/auth';
-import { clearStoredAuth } from '../utils/authTokens';
+import { clearStoredAuth } from '\../utils/authTokens';
 
 const API_TARGET = import.meta.env.VITE_API_TARGET || 'http://localhost:8787';
 const isDev = import.meta.env.DEV
@@ -95,3 +95,6 @@ client.interceptors.response.use(
 );
 
 export default client;
+//Su dung originalRequest: Request ban dau. Dieu kien de no co the lay duoc access token 
+//chinh la dua vao originalRequest => originalRequest._retry = 0 && originalRequest (co ton tai)
+// && originalRequest.url.includes('/auth/refresh') (Khong goi lai API nay neu nhu day chinh la API dung de lay access token luon - tranh loi infinity loop)

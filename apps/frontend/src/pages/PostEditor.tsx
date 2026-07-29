@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
@@ -21,7 +21,24 @@ import { EditorSidebar } from '../components/editor/EditorSidebar';
 import { getErrorMessage } from '../utils/errors';
 import axios from 'axios';
 import { Save, Loader2 } from 'lucide-react';
+
 const MAX_FILE_SIZE = 1.2 * 1024 * 1024
+const SUMMARY_MAX_LENGTH = 300;
+const AUTO_SAVE_INTERVAL_MS = 8 * 60 * 1000;
+const AUTO_SAVE_STORAGE_PREFIX = 'post-editor-draft';
+
+interface PostEditorDraft {
+  title: string;
+  summary: string;
+  content: string;
+  banner: string;
+  slug: string;
+  selectedCollectionIds: number[];
+  selectedTagIds: number[];
+  status: 'draft' | 'published';
+  updatedAt: number;
+}
+
 export const PostEditor: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -38,6 +55,7 @@ export const PostEditor: React.FC = () => {
   const [tags, setTags] = useState<Tag[]>([]);
 
   const [title, setTitle] = useState('');
+  const [summary, setSummary] = useState('');
   const [slug, setSlug] = useState('');
   const [banner, setBanner] = useState('');
   const [content, setContent] = useState('');
@@ -50,13 +68,103 @@ export const PostEditor: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isBannerUploading, setIsBannerUploading] = useState(false);
+  const [isInitialDataReady, setIsInitialDataReady] = useState(false);
+  const [lastAutoSavedAt, setLastAutoSavedAt] = useState<number | null>(null);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   
   const initialTitleRef = useRef('');
+  const initialSummaryRef = useRef('');
   const initialContentRef = useRef('');
+  const initialBannerRef = useRef('');
+  const initialSlugRef = useRef('');
+  const initialCollectionIdsRef = useRef<number[]>([]);
+  const initialTagIdsRef = useRef<number[]>([]);
   const isSubmitSavingRef = useRef(false);
+  const isDraftRestoredRef = useRef(false);
+  const draftRef = useRef<PostEditorDraft | null>(null);
+  const hasEditorChangesRef = useRef(false);
+
+  const draftKey = `${AUTO_SAVE_STORAGE_PREFIX}:${user?.id ?? user?.email ?? 'anonymous'}:${editPostId ?? 'new'}`;
+
+  const buildDraft = useCallback((): PostEditorDraft => ({
+    title,
+    summary,
+    content,
+    banner,
+    slug,
+    selectedCollectionIds,
+    selectedTagIds,
+    status,
+    updatedAt: Date.now(),
+  }), [title, summary, content, banner, slug, selectedCollectionIds, selectedTagIds, status]);
+
+  const hasEditorChanges = useCallback(() => (
+    title.trim() !== initialTitleRef.current ||
+    summary.trim() !== initialSummaryRef.current ||
+    content.trim() !== initialContentRef.current ||
+    banner !== initialBannerRef.current ||
+    slug.trim() !== initialSlugRef.current ||
+    selectedCollectionIds.join(',') !== initialCollectionIdsRef.current.join(',') ||
+    selectedTagIds.join(',') !== initialTagIdsRef.current.join(',')
+  ), [title, summary, content, banner, slug, selectedCollectionIds, selectedTagIds]);
+
+  const readStoredDraft = useCallback((): PostEditorDraft | null => {
+    try {
+      const rawDraft = localStorage.getItem(draftKey);
+      if (!rawDraft) return null;
+      const parsed = JSON.parse(rawDraft) as Partial<PostEditorDraft>;
+      if (typeof parsed.updatedAt !== 'number') return null;
+      return {
+        title: parsed.title ?? '',
+        summary: parsed.summary ?? '',
+        content: parsed.content ?? '',
+        banner: parsed.banner ?? '',
+        slug: parsed.slug ?? '',
+        selectedCollectionIds: Array.isArray(parsed.selectedCollectionIds) ? parsed.selectedCollectionIds : [],
+        selectedTagIds: Array.isArray(parsed.selectedTagIds) ? parsed.selectedTagIds : [],
+        status: parsed.status === 'published' ? 'published' : 'draft',
+        updatedAt: parsed.updatedAt,
+      };
+    } catch (err) {
+      console.error('Failed to read editor draft:', err);
+      return null;
+    }
+  }, [draftKey]);
+
+  const persistDraft = useCallback((draft: PostEditorDraft) => {
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+      setLastAutoSavedAt(draft.updatedAt);
+    } catch (err) {
+      console.error('Failed to save editor draft:', err);
+    }
+  }, [draftKey]);
+
+  const clearStoredDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(draftKey);
+    } catch (err) {
+      console.error('Failed to clear editor draft:', err);
+    }
+  }, [draftKey]);
+
+  const applyDraft = useCallback((draft: PostEditorDraft) => {
+    setTitle(draft.title);
+    setSummary(draft.summary);
+    setContent(draft.content);
+    setBanner(draft.banner);
+    setSlug(draft.slug);
+    setSelectedCollectionIds(draft.selectedCollectionIds);
+    setSelectedTagIds(draft.selectedTagIds);
+    setStatus(draft.status);
+    setLastAutoSavedAt(draft.updatedAt);
+  }, []);
 
   useEffect(() => {
+    setIsInitialDataReady(false);
+    isDraftRestoredRef.current = false;
+    setLastAutoSavedAt(null);
+
     const loadCatalogs = async () => {
       try {
         const [collectionsData, tagsData] = await Promise.all([
@@ -71,29 +179,51 @@ export const PostEditor: React.FC = () => {
     };
 
     const loadPostData = async () => {
-      if (!editPostId) return;
+      if (!editPostId) {
+        setTitle('');
+        setSummary('');
+        setSlug('');
+        setBanner('');
+        setContent('');
+        setStatus('draft');
+        setSelectedCollectionIds([]);
+        setSelectedTagIds([]);
+        initialTitleRef.current = '';
+        initialSummaryRef.current = '';
+        initialContentRef.current = '';
+        initialBannerRef.current = '';
+        initialSlugRef.current = '';
+        initialCollectionIdsRef.current = [];
+        initialTagIdsRef.current = [];
+        return;
+      }
       setIsLoading(true);
       try {
         const post = await getPostDetailApi(editPostId.toString());
         setTitle(post.title);
+        setSummary(post.summary || '');
         setSlug(post.slug);
         setBanner(post.banner || '');
         setContent(post.content);
         setStatus(post.status === 'published' ? 'published' : 'draft');
         
         initialTitleRef.current = post.title;
+        initialSummaryRef.current = post.summary || '';
         initialContentRef.current = post.content;
+        initialBannerRef.current = post.banner || '';
+        initialSlugRef.current = post.slug;
 
         const safeCollections = Array.isArray(post.collections) ? post.collections : [];
         const safeTags = Array.isArray(post.tags) ? post.tags : [];
+        const initialCollectionIds = safeCollections.map((c) => c.id);
+        const initialTagIds = safeTags.map((t) => t.id);
 
-        if (safeCollections.length > 0) {
-          setSelectedCollectionIds(safeCollections.map((c) => c.id));
-        }
-        if (safeTags.length > 0) {
-          setSelectedTagIds(safeTags.map((t) => t.id));
-        }
-      } catch (err) {
+        initialCollectionIdsRef.current = initialCollectionIds;
+        initialTagIdsRef.current = initialTagIds;
+
+        setSelectedCollectionIds(initialCollectionIds);
+        setSelectedTagIds(initialTagIds);
+      } catch {
         toast({
           title: 'Load Failed',
           description: 'Failed to load post details.',
@@ -105,8 +235,55 @@ export const PostEditor: React.FC = () => {
       }
     };
 
-    loadCatalogs().then(loadPostData);
-  }, [editPostId, navigate, backUrl]);
+    const loadInitialData = async () => {
+      await loadCatalogs();
+      await loadPostData();
+      setIsInitialDataReady(true);
+    };
+
+    loadInitialData();
+  }, [editPostId, navigate, backUrl, toast]);
+
+  useEffect(() => {
+    draftRef.current = buildDraft();
+  }, [buildDraft]);
+
+  useEffect(() => {
+    hasEditorChangesRef.current = hasEditorChanges();
+  }, [hasEditorChanges]);
+
+  useEffect(() => {
+    if (!isInitialDataReady || isDraftRestoredRef.current) return;
+    const storedDraft = readStoredDraft();
+    if (storedDraft) {
+      applyDraft(storedDraft);
+      toast({
+        title: 'Draft Restored',
+        description: 'Autosaved edits from this browser were restored.',
+        variant: 'success',
+      });
+    }
+    isDraftRestoredRef.current = true;
+  }, [isInitialDataReady, readStoredDraft, applyDraft, toast]);
+
+  useEffect(() => {
+    const saveDraft = () => {
+      if (!isDraftRestoredRef.current || isSubmitSavingRef.current || !hasEditorChangesRef.current) return;
+      if (!draftRef.current) return;
+      const nextDraft = { ...draftRef.current, updatedAt: Date.now() };
+      persistDraft(nextDraft);
+    };
+
+    const intervalId = window.setInterval(saveDraft, AUTO_SAVE_INTERVAL_MS);
+    window.addEventListener('beforeunload', saveDraft);
+    document.addEventListener('visibilitychange', saveDraft);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('beforeunload', saveDraft);
+      document.removeEventListener('visibilitychange', saveDraft);
+    };
+  }, [persistDraft]);
 
   const handleBannerUploadClick = () => {
     bannerFileInputRef.current?.click();
@@ -153,7 +330,7 @@ export const PostEditor: React.FC = () => {
 
 
 
-  const handleSavePost = async () => {
+  const handleSavePost = useCallback(async () => {
     if (!title.trim()) {
       toast({
         title: 'Missing information',
@@ -168,6 +345,7 @@ export const PostEditor: React.FC = () => {
     
     const payload = {
       title: title.trim(),
+      summary: summary.trim() || undefined,
       content,
       banner: banner || undefined,
       slug: slug.trim() || undefined,
@@ -192,6 +370,7 @@ export const PostEditor: React.FC = () => {
           variant: 'success',
         });
       }
+      clearStoredDraft();
       navigate(backUrl);
     } catch (err: any) {
       console.error('Failed to save post:', err);
@@ -205,7 +384,21 @@ export const PostEditor: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [
+    title,
+    toast,
+    summary,
+    content,
+    banner,
+    slug,
+    selectedTagIds,
+    selectedCollectionIds,
+    status,
+    editPostId,
+    clearStoredDraft,
+    navigate,
+    backUrl,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -222,15 +415,11 @@ export const PostEditor: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [title, content, banner, slug, selectedCollectionIds, selectedTagIds, editPostId]);
+  }, [handleSavePost]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      const hasChanges =
-        title.trim() !== initialTitleRef.current ||
-        content.trim() !== initialContentRef.current;
-
-      if (hasChanges && !isSubmitSavingRef.current) {
+      if (hasEditorChanges() && !isSubmitSavingRef.current) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -240,14 +429,10 @@ export const PostEditor: React.FC = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [title, content]);
+  }, [hasEditorChanges]);
 
   const handleBack = () => {
-    const hasChanges =
-      title.trim() !== initialTitleRef.current ||
-      content.trim() !== initialContentRef.current;
-
-    if (hasChanges) {
+    if (hasEditorChanges()) {
       setIsConfirmOpen(true);
     } else {
       navigate(backUrl);
@@ -320,6 +505,31 @@ export const PostEditor: React.FC = () => {
                 }`}
               />
             </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 bg-slate-50">
+                <label htmlFor="post-summary" className="text-sm font-bold text-slate-700">
+                  Summary
+                </label>
+                <span className="text-[11px] font-semibold text-slate-400">
+                  {summary.length}/{SUMMARY_MAX_LENGTH}
+                </span>
+              </div>
+              <textarea
+                id="post-summary"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value.slice(0, SUMMARY_MAX_LENGTH))}
+                maxLength={SUMMARY_MAX_LENGTH}
+                placeholder="Write a short summary for this blog..."
+                className="min-h-28 w-full resize-y bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 placeholder:text-slate-300 focus:outline-none"
+              />
+            </div>
+
+            {!isDistractionFree && lastAutoSavedAt && (
+              <p className="text-xs font-medium text-slate-400">
+                Draft autosaved at {new Date(lastAutoSavedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
 
             <TipTapEditor
               content={content}
