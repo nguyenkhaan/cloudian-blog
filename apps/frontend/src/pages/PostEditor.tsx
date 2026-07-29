@@ -444,7 +444,7 @@ export const PostEditor: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-[var(--background)] flex flex-col">
       <input
         type="file"
         ref={bannerFileInputRef}
@@ -453,16 +453,14 @@ export const PostEditor: React.FC = () => {
         className="hidden"
       />
 
-      {!isDistractionFree && (
-        <EditorHeader
-          isEditMode={!!editPostId}
-          isSaving={isSaving}
-          onBack={handleBack}
-          onSave={handleSavePost}
-        />
-      )}
+            <EditorHeader
+              isEditMode={!!editPostId}
+              isSaving={isSaving}
+              onBack={handleBack}
+              onSave={handleSavePost}
+            />
 
-      <main className={`flex-1 max-w-6xl w-full mx-auto px-6 py-8 ${isDistractionFree ? 'pt-4 pb-12' : ''}`}>
+          <main className={`flex-1 max-w-6xl w-full mx-auto px-6 py-8 ${isDistractionFree ? 'pt-4 pb-12' : ''} dark:bg-[var(--background)]`}>
         {isDistractionFree && (
           <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
             <Button
@@ -500,18 +498,18 @@ export const PostEditor: React.FC = () => {
                 placeholder="Post title..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className={`w-full bg-transparent focus:outline-none font-extrabold text-slate-800 tracking-tight placeholder:text-slate-200 transition-all ${
-                  isDistractionFree ? 'text-3xl md:text-5xl mt-6' : 'text-2xl md:text-3xl border-b border-slate-200 pb-3'
+                className={`w-full bg-transparent focus:outline-none font-extrabold text-[var(--color-foreground)] tracking-tight placeholder:text-[var(--color-muted-foreground)] transition-all ${
+                  isDistractionFree ? 'text-3xl md:text-5xl mt-6' : 'text-2xl md:text-3xl border-b border-slate-200 pb-3 dark:border-slate-700'
                 }`}
               />
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 bg-slate-50">
-                <label htmlFor="post-summary" className="text-sm font-bold text-slate-700">
+            <div className="bg-[var(--background)] rounded-2xl border border-slate-200 shadow-sm overflow-hidden dark:border-slate-700">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                <label htmlFor="post-summary" className="text-sm font-bold text-slate-700 dark:text-[var(--color-foreground)]">
                   Summary
                 </label>
-                <span className="text-[11px] font-semibold text-slate-400">
+                <span className="text-[11px] font-semibold text-slate-400 dark:text-[var(--color-muted-foreground)]">
                   {summary.length}/{SUMMARY_MAX_LENGTH}
                 </span>
               </div>
@@ -521,7 +519,7 @@ export const PostEditor: React.FC = () => {
                 onChange={(e) => setSummary(e.target.value.slice(0, SUMMARY_MAX_LENGTH))}
                 maxLength={SUMMARY_MAX_LENGTH}
                 placeholder="Write a short summary for this blog..."
-                className="min-h-28 w-full resize-y bg-white px-4 py-3 text-sm leading-relaxed text-slate-700 placeholder:text-slate-300 focus:outline-none"
+                className="min-h-28 w-full resize-y bg-[var(--background)] px-4 py-3 text-sm leading-relaxed text-slate-700 dark:text-[var(--color-foreground)] placeholder:text-slate-300 dark:placeholder:text-[var(--color-muted-foreground)] focus:outline-none"
               />
             </div>
 

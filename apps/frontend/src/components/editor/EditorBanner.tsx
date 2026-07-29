@@ -15,7 +15,7 @@ export const EditorBanner: React.FC<EditorBannerProps> = ({
   onRemove
 }) => {
   return (
-    <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-card border border-slate-200 dark:border-border shadow-none group">
+    <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-[var(--background)] border border-slate-200 dark:border-border shadow-none group">
       {banner ? (
         <>
           <img
@@ -27,7 +27,7 @@ export const EditorBanner: React.FC<EditorBannerProps> = ({
             <button
               type="button"
               onClick={onUploadClick}
-              className="px-4 py-2 bg-white text-slate-800 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow flex items-center gap-1.5 cursor-pointer border-0"
+              className="px-4 py-2 bg-white text-slate-800 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow flex items-center gap-1.5 cursor-pointer border-0 dark:bg-[var(--background)] dark:text-[var(--color-foreground)] dark:hover:bg-[var(--color-secondary)]"
             >
               <ImageIcon className="w-4 h-4" /> Change Image
             </button>
@@ -53,7 +53,7 @@ export const EditorBanner: React.FC<EditorBannerProps> = ({
             <>
               <ImageIcon className="w-10 h-10 mb-2" />
               <span className="text-sm font-black">Upload Cover Image</span>
-              <span className="text-xs text-slate-400 mt-1">Recommended ratio: 21:9 (matches detail view)</span>
+              <span className="text-xs text-slate-400 mt-1 dark:text-[var(--color-muted-foreground)]">Recommended ratio: 21:9 (matches detail view)</span>
             </>
           )}
         </button>
