@@ -1,4 +1,4 @@
-import { createDb } from '@/db';
+import { createDb, runWithTransaction } from '@/db';
 import {
     CollectionModel,
     PostCollectionModel,
@@ -165,7 +165,7 @@ export async function deleteCollection(
             });
         }
 
-        await db.transaction(async (tx) => {
+        await runWithTransaction(db, async (tx) => {
             await tx
                 .delete(PostCollectionModel)
                 .where(eq(PostCollectionModel.collectionId, id));

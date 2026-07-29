@@ -1,10 +1,13 @@
 //https://docs.langchain.com/oss/javascript/langchain/overview
-import { cloudinary } from '@/core/cloudianry.config';
-import { createDb } from '@/db';
+import {
+    cloudinary } from '@/core/cloudianry.config';
+import { createDb, runWithTransaction } from '@/db';
 import { convertPdf } from '@/helper/htmlToPdf';
 import { generateRandomString } from '@/helper/randomString';
 import {
+    CommentModel,
     CollectionModel,
+    DownloadPostModel,
     PostCollectionModel,
     PostModel,
     PostStatus,
@@ -12,7 +15,6 @@ import {
     TagModel,
     UserModel,
     Role,
-    DownloadPostModel,
 } from '@/model';
 import {
     CreatePostDtoType,
@@ -24,7 +26,6 @@ import {
 import type { BrowserWorker } from '@cloudflare/puppeteer';
 import { and, desc, eq, inArray, SQL } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-
 export async function getAllPost(
     db: ReturnType<typeof createDb>,
     data: GetAllPostQueryType
@@ -280,6 +281,8 @@ export async function createUploadSignature(
         },
         apiSecret
     );
+    console.log(signature) 
+    console.log(timestamp)
     return {
         signature,
         timestamp,
@@ -552,13 +555,19 @@ export async function deletePost(
             });
         }
 
-        await db.transaction(async (tx) => {
+        await runWithTransaction(db, async (tx) => {
             await tx
                 .delete(PostTagModel)
                 .where(eq(PostTagModel.postId, postId));
             await tx
                 .delete(PostCollectionModel)
                 .where(eq(PostCollectionModel.postId, postId));
+            await tx
+                .delete(CommentModel)
+                .where(eq(CommentModel.postId, postId));
+            await tx
+                .delete(DownloadPostModel)
+                .where(eq(DownloadPostModel.postId, postId));
             await tx.delete(PostModel).where(eq(PostModel.id, postId));
         });
 

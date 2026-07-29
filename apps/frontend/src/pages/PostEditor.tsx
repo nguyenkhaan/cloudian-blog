@@ -20,7 +20,7 @@ import { EditorBanner } from '../components/editor/EditorBanner';
 import { EditorSidebar } from '../components/editor/EditorSidebar';
 import axios from 'axios';
 import { Save, Loader2 } from 'lucide-react';
-
+const MAX_FILE_SIZE = 1.2 * 1024 * 1024
 export const PostEditor: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -114,7 +114,10 @@ export const PostEditor: React.FC = () => {
   const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    if (file.size >= MAX_FILE_SIZE) {
+      alert(`File must be less then ${MAX_FILE_SIZE}MB`) 
+      return 
+    }
     setIsBannerUploading(true);
     try {
       const sigData = await getUploadSignatureApi();

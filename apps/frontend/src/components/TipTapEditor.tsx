@@ -28,6 +28,7 @@ interface TipTapEditorProps {
   isDistractionFree: boolean;
   onToggleDistractionFree: () => void;
 }
+const MAX_FILE_SIZE = 1.2 * 1024 * 1024
 
 export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   content,
@@ -74,20 +75,30 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    if (file.size > MAX_FILE_SIZE) 
+    {
+      alert(`File size must be less than ${MAX_FILE_SIZE}`)
+      return 
+    }
+    console.log(MAX_FILE_SIZE)
     setIsUploading(true);
     try {
       const sigData = await getUploadSignatureApi();
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', import.meta.env.VITE_CLOUDINARY_API_KEY || '461458269566955');
+      formData.append('api_key', import.meta.env.VITE_CLOUDINARY_API_KEY);
       formData.append('timestamp', sigData.timestamp.toString());
       formData.append('signature', sigData.signature);
       formData.append('folder', sigData.folder);
-
+      console.log({
+        api_key: import.meta.env.VITE_CLOUDINARY_API_KEY,
+        timestamp: sigData.timestamp,
+        signature: sigData.signature,
+        folder: sigData.folder,
+      });
       const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dikd164hg'}/image/upload`;
-      
+
       const response = await axios.post<{ secure_url: string }>(cloudinaryUrl, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',

@@ -1,4 +1,4 @@
-import { createDb } from '@/db';
+import { createDb, runWithTransaction } from '@/db';
 import { PostTagModel, TagModel } from '@/model';
 import { CreateTagDtoType } from '@/schema/tag.schema';
 import { eq, or } from 'drizzle-orm';
@@ -69,7 +69,7 @@ export async function deleteTag(db: ReturnType<typeof createDb>, id: number) {
             });
         }
 
-        await db.transaction(async (tx) => {
+        await runWithTransaction(db, async (tx) => {
             await tx.delete(PostTagModel).where(eq(PostTagModel.tagId, id));
 
             await tx.delete(TagModel).where(eq(TagModel.id, id));
