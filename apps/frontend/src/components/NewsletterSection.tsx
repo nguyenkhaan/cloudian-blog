@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { useToast } from '../hooks/useToast';
 import { subscribeApi } from '../api/subscriber';
+import { getErrorMessage } from '../utils/errors';
 
 export const NewsletterSection: React.FC = () => {
   const { toast } = useToast();
@@ -26,7 +27,7 @@ export const NewsletterSection: React.FC = () => {
       setNewsletterEmail('');
     } catch (err: any) {
       toast({
-        description: err.response?.data?.error || 'Subscription failed. Please try again.',
+        description: getErrorMessage(err, 'Subscription failed. Please try again.'),
         variant: 'destructive',
       });
     } finally {

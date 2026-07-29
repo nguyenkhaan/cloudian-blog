@@ -4,6 +4,7 @@ import { createCollectionApi, createTagApi, deleteCollectionApi, deleteTagApi, g
 import { useToast } from '../../hooks/useToast';
 import type { Collection, Post, Tag } from '../../types/post';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { getErrorMessage } from '../../utils/errors';
 
 const slugify = (value: string) =>
   value
@@ -76,7 +77,7 @@ export const DashboardTaxonomy: React.FC = () => {
     } catch (error: any) {
       toast({
         title: 'Unable to create tag',
-        description: error?.response?.data?.message || 'Please try again later.',
+        description: getErrorMessage(error, 'Please try again later.'),
         variant: 'destructive',
       });
     } finally {
@@ -105,7 +106,7 @@ export const DashboardTaxonomy: React.FC = () => {
     } catch (error: any) {
       toast({
         title: 'Unable to load related posts',
-        description: error?.response?.data?.message || 'Please try again later.',
+        description: getErrorMessage(error, 'Please try again later.'),
         variant: 'destructive',
       });
     } finally {
@@ -128,7 +129,7 @@ export const DashboardTaxonomy: React.FC = () => {
       } catch (error: any) {
         toast({
           title: 'Unable to delete tag',
-          description: error?.response?.data?.message || 'Please try again later.',
+          description: getErrorMessage(error, 'Please try again later.'),
           variant: 'destructive',
         });
       } finally {
@@ -145,7 +146,7 @@ export const DashboardTaxonomy: React.FC = () => {
     } catch (error: any) {
       toast({
         title: 'Unable to delete collection',
-        description: error?.response?.data?.message || 'Please try again later.',
+        description: getErrorMessage(error, 'Please try again later.'),
         variant: 'destructive',
       });
     } finally {
@@ -176,7 +177,7 @@ export const DashboardTaxonomy: React.FC = () => {
     } catch (error: any) {
       toast({
         title: 'Unable to create collection',
-        description: error?.response?.data?.message || 'Please try again later.',
+        description: getErrorMessage(error, 'Please try again later.'),
         variant: 'destructive',
       });
     } finally {

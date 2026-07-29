@@ -11,6 +11,7 @@ import type { Comment } from '../types/comment';
 import { ReportModal } from './ReportModal';
 import { Button } from './ui/button';
 import { ConfirmModal } from './ui/ConfirmModal';
+import { getErrorMessage } from '../utils/errors';
 import {
   Send,
   Edit2,
@@ -81,7 +82,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         variant: 'success',
       });
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Failed to post comment.';
+      const errMsg = getErrorMessage(err, 'Failed to post comment.');
       setError(errMsg);
       toast({
         title: 'Failed to submit comment',
@@ -120,7 +121,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         variant: 'success',
       });
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Failed to update comment.';
+      const errMsg = getErrorMessage(err, 'Failed to update comment.');
       setError(errMsg);
       toast({
         title: 'Update Failed',
@@ -151,7 +152,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         variant: 'success',
       });
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'Failed to delete comment.';
+      const errMsg = getErrorMessage(err, 'Failed to delete comment.');
       setError(errMsg);
       toast({
         title: 'Delete Failed',

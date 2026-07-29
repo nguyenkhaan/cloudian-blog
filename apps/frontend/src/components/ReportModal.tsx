@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createReportApi } from '../api/comment';
 import { Button } from './ui/button';
 import { X, AlertTriangle, ShieldCheck, Loader2 } from 'lucide-react';
+import { getErrorMessage } from '../utils/errors';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         onClose();
       }, 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send report. Please try again.');
+      setError(getErrorMessage(err, 'Failed to send report. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }

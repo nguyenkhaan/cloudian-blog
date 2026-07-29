@@ -6,6 +6,7 @@ import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { getErrorMessage } from '../utils/errors';
 
 export const Verify: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -38,7 +39,7 @@ export const Verify: React.FC = () => {
         }
       } catch (err: any) {
         setStatus('error');
-        setMessage(err.response?.data?.error || err.response?.data?.message || err.message || 'Verification failed. The link may have expired or is invalid.');
+        setMessage(getErrorMessage(err, 'Verification failed. The link may have expired or is invalid.'));
       }
     };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { KeyRound, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
+import { getErrorMessage } from '../utils/errors';
 
 interface PasswordConfirmModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const PasswordConfirmModal: React.FC<PasswordConfirmModalProps> = ({
       setPassword('');
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Incorrect password.');
+      setError(getErrorMessage(err, 'Incorrect password.'));
     } finally {
       setIsSubmitting(false);
     }

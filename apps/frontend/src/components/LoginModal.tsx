@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import { X, KeyRound, Mail, LogIn, Loader2, CheckCircle2 } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 import { forgotPasswordApi } from '../api/auth';
+import { getErrorMessage } from '../utils/errors';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -53,7 +54,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       });
       handleClose();
     } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Google login failed. Please try again.');
+      setError(getErrorMessage(err, 'Google login failed. Please try again.'));
     } finally {
       setIsLoggingIn(false);
     }
@@ -75,7 +76,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       });
       handleClose();
     } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Incorrect email or password.');
+      setError(getErrorMessage(err, 'Incorrect email or password.'));
     } finally {
       setIsLoggingIn(false);
     }
@@ -98,7 +99,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
         variant: 'success',
       });
     } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to send reset link.');
+      setError(getErrorMessage(err, 'Failed to send reset link.'));
     } finally {
       setIsLoggingIn(false);
     }

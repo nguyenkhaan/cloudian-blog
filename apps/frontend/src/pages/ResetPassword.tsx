@@ -7,6 +7,7 @@ import { KeyRound, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { getErrorMessage } from '../utils/errors';
 
 export const ResetPassword: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -57,7 +58,7 @@ export const ResetPassword: React.FC = () => {
       });
     } catch (err: any) {
       setStatus('error');
-      setErrorMessage(err.response?.data?.error || err.response?.data?.message || err.message || 'An error occurred during password reset.');
+      setErrorMessage(getErrorMessage(err, 'An error occurred during password reset.'));
     } finally {
       setIsSubmitting(false);
     }

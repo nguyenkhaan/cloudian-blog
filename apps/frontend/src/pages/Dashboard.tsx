@@ -24,6 +24,7 @@ import { DashboardUsers } from '../components/dashboard/DashboardUsers';
 import { DashboardMyBlogs } from '../components/dashboard/DashboardMyBlogs';
 import { DashboardProfile } from '../components/dashboard/DashboardProfile';
 import { DashboardTaxonomy } from '../components/dashboard/DashboardTaxonomy';
+import { getErrorMessage } from '../utils/errors';
 import {
   User,
   BookOpen,
@@ -425,7 +426,7 @@ export const Dashboard: React.FC = () => {
       } catch (err: any) {
         toast({
           title: 'Error updating profile',
-          description: err.response?.data?.error || err.response?.data?.message || err.message || 'An error occurred.',
+          description: getErrorMessage(err, 'An error occurred.'),
           variant: 'destructive',
         });
       } finally {
@@ -469,7 +470,7 @@ export const Dashboard: React.FC = () => {
     } catch (err: any) {
       toast({
         title: 'Error',
-        description: err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to trigger password change.',
+        description: getErrorMessage(err, 'Failed to trigger password change.'),
         variant: 'destructive',
       });
     } finally {
@@ -504,7 +505,7 @@ export const Dashboard: React.FC = () => {
       setManagerEmail('');
       setManagerPassword('');
     } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || 'Error creating manager account.');
+      setError(getErrorMessage(err, 'Error creating manager account.'));
     } finally {
       setIsCreatingManager(false);
     }

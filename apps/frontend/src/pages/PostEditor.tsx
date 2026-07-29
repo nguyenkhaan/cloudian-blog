@@ -18,6 +18,7 @@ import { PostEditorSkeleton } from '../components/ui/Skeleton';
 import { EditorHeader } from '../components/editor/EditorHeader';
 import { EditorBanner } from '../components/editor/EditorBanner';
 import { EditorSidebar } from '../components/editor/EditorSidebar';
+import { getErrorMessage } from '../utils/errors';
 import axios from 'axios';
 import { Save, Loader2 } from 'lucide-react';
 const MAX_FILE_SIZE = 1.2 * 1024 * 1024
@@ -195,7 +196,7 @@ export const PostEditor: React.FC = () => {
     } catch (err: any) {
       console.error('Failed to save post:', err);
       isSubmitSavingRef.current = false;
-      const errMsg = err.response?.data?.message || 'Could not save post. Please review inputs.';
+      const errMsg = getErrorMessage(err, 'Could not save post. Please review inputs.');
       toast({
         title: 'Save Failed',
         description: errMsg,

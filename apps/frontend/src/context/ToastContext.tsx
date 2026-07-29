@@ -1,6 +1,7 @@
 import React, { createContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { getErrorMessage } from '../utils/errors';
 
 export type ToastVariant = 'default' | 'success' | 'destructive';
 
@@ -30,7 +31,16 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const toast = useCallback(
     ({ title, description, variant = 'default', duration = 3000 }: Omit<Toast, 'id'>) => {
       const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, title, description, variant, duration }]);
+      setToasts((prev) => [
+        ...prev,
+        {
+          id,
+          title: title ? getErrorMessage(title, '') : undefined,
+          description: getErrorMessage(description, 'Something went wrong. Please try again.'),
+          variant,
+          duration,
+        },
+      ]);
 
       if (duration > 0) {
         setTimeout(() => {

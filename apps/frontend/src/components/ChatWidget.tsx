@@ -18,6 +18,7 @@ import {
   Loader2,
   Bot
 } from 'lucide-react';
+import { getErrorMessage } from '../utils/errors';
 
 export const ChatWidget: React.FC = () => {
   const { isAuthenticated, openLoginModal } = useAuth();
@@ -133,7 +134,7 @@ export const ChatWidget: React.FC = () => {
         return [...filtered, response.userMessage, response.assistantMessage];
       });
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred while sending message.');
+      setError(getErrorMessage(err, 'An error occurred while sending message.'));
     } finally {
       setIsThinking(false);
     }

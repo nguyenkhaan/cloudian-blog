@@ -3,6 +3,7 @@ import { subscribeApi } from '../api/subscriber';
 import { Button } from './ui/button';
 import { X, Mail, ShieldCheck, Loader2 } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
+import { getErrorMessage } from '../utils/errors';
 
 interface SubscribeModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const SubscribeModal: React.FC<SubscribeModalProps> = ({ isOpen, onClose 
         onClose();
       }, 2500);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to subscribe. Please try again.');
+      setError(getErrorMessage(err, 'Failed to subscribe. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
