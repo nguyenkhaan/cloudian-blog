@@ -225,6 +225,8 @@ export async function createPost(
     data: CreatePostDtoType
 ) {
     try {
+        let slug = null 
+        if (data.slug) slug = data.slug.trim() 
         const post = await db
             .insert(PostModel)
             .values({
@@ -232,7 +234,7 @@ export async function createPost(
                 content: data.content,
                 summary: data.summary || '',
                 banner: data.banner, //Fallback ve du lieu binh thuong
-                slug: data.slug,
+                slug: slug || null,
                 status: PostStatus.DRAFT,
                 authorId: userId,
             })

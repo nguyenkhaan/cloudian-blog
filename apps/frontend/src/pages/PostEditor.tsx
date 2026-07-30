@@ -103,7 +103,7 @@ export const PostEditor: React.FC = () => {
     summary.trim() !== initialSummaryRef.current ||
     content.trim() !== initialContentRef.current ||
     banner !== initialBannerRef.current ||
-    slug.trim() !== initialSlugRef.current ||
+    (slug && slug.trim() !== initialSlugRef.current) || (slug != initialSlugRef.current) ||
     selectedCollectionIds.join(',') !== initialCollectionIdsRef.current.join(',') ||
     selectedTagIds.join(',') !== initialTagIdsRef.current.join(',')
   ), [title, summary, content, banner, slug, selectedCollectionIds, selectedTagIds]);
@@ -482,7 +482,7 @@ export const PostEditor: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           <div className={`space-y-6 ${isDistractionFree ? 'lg:col-span-4 max-w-3xl mx-auto w-full' : 'lg:col-span-3'}`}>
             
-            {/* Banner preview area matching PostDetail.tsx size */}
+
             {!isDistractionFree && (
               <EditorBanner
                 banner={banner}

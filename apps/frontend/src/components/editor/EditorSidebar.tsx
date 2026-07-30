@@ -61,7 +61,7 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = ({
         <input
           type="text"
           placeholder="abbreviated-title"
-          value={slug}
+          value={slug ?? ''}
           onChange={(e) => onSlugChange(e.target.value)}
           className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs text-slate-700 bg-[var(--background)] dark:border-slate-600 dark:text-[var(--color-foreground)] dark:bg-slate-800"
         />
