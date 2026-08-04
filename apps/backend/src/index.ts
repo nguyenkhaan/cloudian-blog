@@ -1,6 +1,6 @@
 //https://freedium-mirror.cfd/https://medium.com/@yannick.burkard/building-production-ready-hono-apis-a-modern-architecture-guide-fed8a415ca96
 //https://hono.dev/docs/api/request - Su dung OpenAPI Hono de sinh API document nhe may con vo. Lam nhu the thi no moi nhanh duoc
-import { Context, Hono } from 'hono';
+import { Context, Hono, Next } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
 import { Scalar } from '@scalar/hono-api-reference';
@@ -22,6 +22,41 @@ import { redisMiddleware } from './middleware/redis.middleware';
 import { cors } from 'hono/cors'
 
 const app = new Hono<AppEnv>();
+const docsHosts = new Set(['localhost', '127.0.0.1']);
+
+const isDocsRequest = (c: Context<AppEnv>) => {
+    const hostname = new URL(c.req.url).hostname;
+    return docsHosts.has(hostname) || hostname.endsWith('.localhost');
+};
+
+const openapiHandler = openAPIRouteHandler(app, {
+    documentation: {
+        info: {
+            title: 'Backend API',
+            version: '1.0.0',
+            description: 'Cloudian API documet',
+        },
+        servers: [{ url: 'http://localhost:8787', description: 'Local Server' }],
+    },
+});
+
+const scalarHandler = Scalar(() => {
+    return {
+        url: '/openapi', //Day chinh la duong link cua cai JSON tren nhe
+        proxyUrl: 'https://proxy.scalar.com',
+        theme: 'purple',
+    };
+});
+
+const docsRouteHandler = (handler: any) => {
+    return ((c: Context<AppEnv>, next: Next) => {
+        if (!isDocsRequest(c)) {
+            return c.text('Cloudian Notification Not Found', 404);
+        }
+
+        return handler(c, next);
+    }) as any;
+};
 
 // Define cors 
 app.use('*', cors({
@@ -62,29 +97,12 @@ app.onError((err, c: Context) => {
 
 app.get(
     '/openapi',
-    openAPIRouteHandler(app, {
-        documentation: {
-            info: {
-                title: 'Backend API',
-                version: '1.0.0',
-                description: 'Cloudian API documet',
-            },
-            servers: [
-                { url: 'http://localhost:8787', description: 'Local Server' },
-            ],
-        },
-    })
+    docsRouteHandler(openapiHandler)
 );
 
 app.get(
     '/scalar',
-    Scalar((c: any) => {
-        return {
-            url: '/openapi', //Day chinh la duong link cua cai JSON tren nhe
-            proxyUrl: 'https://proxy.scalar.com',
-            theme: 'purple',
-        };
-    })
+    docsRouteHandler(scalarHandler)
 );
 
 //Adding route
