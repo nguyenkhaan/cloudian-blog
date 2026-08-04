@@ -23,8 +23,11 @@ function isUnsupportedTransactionError(error: unknown): boolean {
     }
     
     // Check the cause property if it exists
-    if ('cause' in error && error.cause !== null && typeof error.cause === 'object') {
-        return checkError(error.cause);
+    if (typeof error === 'object' && error !== null && 'cause' in error) {
+        const cause = (error as { cause?: unknown }).cause;
+        if (cause !== null && typeof cause === 'object') {
+            return checkError(cause);
+        }
     }
     
     return false;

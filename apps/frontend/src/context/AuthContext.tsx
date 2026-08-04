@@ -5,7 +5,14 @@ import { loginWithGoogleApi, loginLocalApi } from '../api/auth';
 import { LoginModal } from '../components/LoginModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { requestAccessTokenRefresh, SESSION_EXPIRED_EVENT } from '../api/client';
-import { clearStoredAuth, getRefreshDelayMs } from '../utils/authTokens';
+import {
+  AUTH_SESSION_LIFETIME_MS,
+  clearStoredAuth,
+  getRefreshDelayMs,
+  getStoredSessionExpiresAt,
+  isStoredSessionExpired,
+  setStoredSessionExpiresAt,
+} from '../utils/authTokens';
 
 interface AuthContextType {
   user: User | null;
@@ -26,6 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSessionExpiredModalOpen, setIsSessionExpiredModalOpen] = useState(false);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearRefreshTimer = () => {
     if (refreshTimerRef.current) {
@@ -34,20 +42,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const clearSessionTimer = () => {
+    if (sessionTimerRef.current) {
+      clearTimeout(sessionTimerRef.current);
+      sessionTimerRef.current = null;
+    }
+  };
+
   const clearAuthState = () => {
     clearRefreshTimer();
+    clearSessionTimer();
     setUser(null);
     clearStoredAuth();
   };
 
   useEffect(() => {
-    // Check if user session exists in localStorage
     const savedUser = localStorage.getItem('user');
     const accessToken = localStorage.getItem('accessToken');
+    const storedSessionExpiresAt = getStoredSessionExpiresAt();
 
     if (savedUser && accessToken) {
       try {
-        setUser(JSON.parse(savedUser));
+        if (storedSessionExpiresAt && storedSessionExpiresAt <= Date.now()) {
+          clearStoredAuth();
+          setIsSessionExpiredModalOpen(true);
+        } else {
+          setUser(JSON.parse(savedUser));
+          if (!storedSessionExpiresAt) {
+            setStoredSessionExpiresAt(Date.now() + AUTH_SESSION_LIFETIME_MS);
+          }
+        }
       } catch {
         clearStoredAuth();
       }
@@ -75,15 +99,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     clearRefreshTimer();
+    clearSessionTimer();
     if (!user) return;
+
+    const sessionExpiresAt = getStoredSessionExpiresAt();
+    if (sessionExpiresAt && sessionExpiresAt <= Date.now()) {
+      clearAuthState();
+      setIsSessionExpiredModalOpen(true);
+      return;
+    }
+
+    const effectiveSessionExpiresAt = sessionExpiresAt ?? (Date.now() + AUTH_SESSION_LIFETIME_MS);
+    if (!sessionExpiresAt) {
+      setStoredSessionExpiresAt(effectiveSessionExpiresAt);
+    }
 
     const scheduleRefresh = () => {
       clearRefreshTimer();
-      const delay = getRefreshDelayMs(localStorage.getItem('accessToken'));
+      const delay = getRefreshDelayMs(
+        localStorage.getItem('accessToken'),
+        effectiveSessionExpiresAt
+      );
       if (delay === null) return;
 
       refreshTimerRef.current = setTimeout(async () => {
         try {
+          if (isStoredSessionExpired()) {
+            throw new Error('Session expired');
+          }
           await requestAccessTokenRefresh();
           scheduleRefresh();
         } catch {
@@ -92,8 +135,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }, delay);
     };
 
+    const timeUntilSessionExpires = Math.max(effectiveSessionExpiresAt - Date.now(), 0);
+    sessionTimerRef.current = setTimeout(() => {
+      clearAuthState();
+      setIsLoginModalOpen(false);
+      setIsSessionExpiredModalOpen(true);
+    }, timeUntilSessionExpires);
+
     scheduleRefresh();
-    return clearRefreshTimer;
+    return () => {
+      clearRefreshTimer();
+      clearSessionTimer();
+    };
   }, [user]);
 
   const handleAuthSuccess = (data: AuthResponse) => {
@@ -101,6 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('user', JSON.stringify(data.user));
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
+    setStoredSessionExpiresAt(Date.now() + AUTH_SESSION_LIFETIME_MS);
     setIsSessionExpiredModalOpen(false);
   };
 

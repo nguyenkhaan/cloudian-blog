@@ -88,6 +88,21 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
       attributes: {
         class: 'focus:outline-none min-h-[300px] max-w-full px-6 py-4 text-[var(--color-foreground)] text-sm md:text-base leading-relaxed',
       },
+      handleKeyDown: (_view, event) => {
+        const isShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd';
+        if (!isShortcut) return false;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (editor.isActive('codeBlock')) {
+          editor.chain().focus().exitCode().run();
+        } else {
+          editor.chain().focus().toggleCodeBlock().run();
+        }
+
+        return true;
+      },
     },
   });
 
@@ -105,6 +120,10 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
       editor.chain().focus().updateAttributes('codeBlock', { language: lang }).run();
     }
     setShowLanguageSelector(false);
+  };
+
+  const handleExitCodeBlock = () => {
+    editor.chain().focus().exitCode().run();
   };
 
   const handleImageUploadClick = () => {
@@ -272,7 +291,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            title="Code Block"
+            title="Code Block (Ctrl/Cmd + D)"
             className={`p-1.5 rounded-lg transition-colors ${editor.isActive('codeBlock') ? 'bg-black/10 dark:bg-white/10 text-[var(--color-primary)]' : 'text-[var(--color-foreground)] hover:bg-black/5 dark:hover:bg-white/5'}`}
           >
             <Code className="w-4 h-4" />
@@ -309,6 +328,19 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {editor.isActive('codeBlock') && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleExitCodeBlock}
+              title="Exit code block (Ctrl/Cmd + D)"
+              className="p-1.5 rounded-lg transition-colors text-[var(--color-foreground)] hover:bg-black/5 dark:hover:bg-white/5 text-xs font-semibold"
+            >
+              Normal
+            </Button>
           )}
 
           <span className="h-4 w-px bg-slate-200 mx-1 dark:bg-slate-700"></span>

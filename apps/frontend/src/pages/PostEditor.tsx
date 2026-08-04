@@ -19,12 +19,13 @@ import { EditorHeader } from '../components/editor/EditorHeader';
 import { EditorBanner } from '../components/editor/EditorBanner';
 import { EditorSidebar } from '../components/editor/EditorSidebar';
 import { getErrorMessage } from '../utils/errors';
+import { savePost } from './postEditorSave';
 import axios from 'axios';
 import { Save, Loader2 } from 'lucide-react';
 
 const MAX_FILE_SIZE = 1.2 * 1024 * 1024
 const SUMMARY_MAX_LENGTH = 300;
-const AUTO_SAVE_INTERVAL_MS = 8 * 60 * 1000;
+const AUTO_SAVE_INTERVAL_MS = 9 * 60 * 1000;
 const AUTO_SAVE_STORAGE_PREFIX = 'post-editor-draft';
 
 interface PostEditorDraft {
@@ -38,6 +39,11 @@ interface PostEditorDraft {
   status: 'draft' | 'published';
   updatedAt: number;
 }
+
+type PersistPostResult = {
+  action: 'created' | 'updated';
+  postId: number;
+};
 
 export const PostEditor: React.FC = () => {
   const navigate = useNavigate();
@@ -67,9 +73,11 @@ export const PostEditor: React.FC = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [isBannerUploading, setIsBannerUploading] = useState(false);
   const [isInitialDataReady, setIsInitialDataReady] = useState(false);
   const [lastAutoSavedAt, setLastAutoSavedAt] = useState<number | null>(null);
+  const [, setPersistedPostId] = useState<number | null>(editPostId);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   
   const initialTitleRef = useRef('');
@@ -80,9 +88,12 @@ export const PostEditor: React.FC = () => {
   const initialCollectionIdsRef = useRef<number[]>([]);
   const initialTagIdsRef = useRef<number[]>([]);
   const isSubmitSavingRef = useRef(false);
+  const isAutoSavingRef = useRef(false);
   const isDraftRestoredRef = useRef(false);
   const draftRef = useRef<PostEditorDraft | null>(null);
   const hasEditorChangesRef = useRef(false);
+  const persistedPostIdRef = useRef<number | null>(editPostId);
+  const persistPostRef = useRef<(options: { autoSave: boolean }) => Promise<PersistPostResult | null>>(async () => null);
 
   const draftKey = `${AUTO_SAVE_STORAGE_PREFIX}:${user?.id ?? user?.email ?? 'anonymous'}:${editPostId ?? 'new'}`;
 
@@ -91,7 +102,7 @@ export const PostEditor: React.FC = () => {
     summary,
     content,
     banner,
-    slug,
+    slug: slug ?? '',
     selectedCollectionIds,
     selectedTagIds,
     status,
@@ -103,7 +114,7 @@ export const PostEditor: React.FC = () => {
     summary.trim() !== initialSummaryRef.current ||
     content.trim() !== initialContentRef.current ||
     banner !== initialBannerRef.current ||
-    (slug && slug.trim() !== initialSlugRef.current) || (slug != initialSlugRef.current) ||
+    ((slug ?? '').trim() !== initialSlugRef.current) ||
     selectedCollectionIds.join(',') !== initialCollectionIdsRef.current.join(',') ||
     selectedTagIds.join(',') !== initialTagIdsRef.current.join(',')
   ), [title, summary, content, banner, slug, selectedCollectionIds, selectedTagIds]);
@@ -131,10 +142,12 @@ export const PostEditor: React.FC = () => {
     }
   }, [draftKey]);
 
-  const persistDraft = useCallback((draft: PostEditorDraft) => {
+  const persistDraft = useCallback((draft: PostEditorDraft, options?: { updateLastSavedAt?: boolean }) => {
     try {
       localStorage.setItem(draftKey, JSON.stringify(draft));
-      setLastAutoSavedAt(draft.updatedAt);
+      if (options?.updateLastSavedAt !== false) {
+        setLastAutoSavedAt(draft.updatedAt);
+      }
     } catch (err) {
       console.error('Failed to save editor draft:', err);
     }
@@ -153,17 +166,30 @@ export const PostEditor: React.FC = () => {
     setSummary(draft.summary);
     setContent(draft.content);
     setBanner(draft.banner);
-    setSlug(draft.slug);
+    setSlug(draft.slug ?? '');
     setSelectedCollectionIds(draft.selectedCollectionIds);
     setSelectedTagIds(draft.selectedTagIds);
     setStatus(draft.status);
     setLastAutoSavedAt(draft.updatedAt);
   }, []);
 
+  const syncSavedSnapshot = useCallback((draft: PostEditorDraft) => {
+    initialTitleRef.current = draft.title;
+    initialSummaryRef.current = draft.summary;
+    initialContentRef.current = draft.content;
+    initialBannerRef.current = draft.banner;
+    initialSlugRef.current = draft.slug;
+    initialCollectionIdsRef.current = [...draft.selectedCollectionIds];
+    initialTagIdsRef.current = [...draft.selectedTagIds];
+    hasEditorChangesRef.current = false;
+  }, []);
+
   useEffect(() => {
     setIsInitialDataReady(false);
     isDraftRestoredRef.current = false;
     setLastAutoSavedAt(null);
+    setPersistedPostId(editPostId);
+    persistedPostIdRef.current = editPostId;
 
     const loadCatalogs = async () => {
       try {
@@ -195,6 +221,8 @@ export const PostEditor: React.FC = () => {
         initialSlugRef.current = '';
         initialCollectionIdsRef.current = [];
         initialTagIdsRef.current = [];
+        setPersistedPostId(null);
+        persistedPostIdRef.current = null;
         return;
       }
       setIsLoading(true);
@@ -202,7 +230,7 @@ export const PostEditor: React.FC = () => {
         const post = await getPostDetailApi(editPostId.toString());
         setTitle(post.title);
         setSummary(post.summary || '');
-        setSlug(post.slug);
+        setSlug(post.slug ?? '');
         setBanner(post.banner || '');
         setContent(post.content);
         setStatus(post.status === 'published' ? 'published' : 'draft');
@@ -211,7 +239,7 @@ export const PostEditor: React.FC = () => {
         initialSummaryRef.current = post.summary || '';
         initialContentRef.current = post.content;
         initialBannerRef.current = post.banner || '';
-        initialSlugRef.current = post.slug;
+        initialSlugRef.current = post.slug ?? '';
 
         const safeCollections = Array.isArray(post.collections) ? post.collections : [];
         const safeTags = Array.isArray(post.tags) ? post.tags : [];
@@ -223,6 +251,8 @@ export const PostEditor: React.FC = () => {
 
         setSelectedCollectionIds(initialCollectionIds);
         setSelectedTagIds(initialTagIds);
+        setPersistedPostId(editPostId);
+        persistedPostIdRef.current = editPostId;
       } catch {
         toast({
           title: 'Load Failed',
@@ -268,18 +298,23 @@ export const PostEditor: React.FC = () => {
 
   useEffect(() => {
     const saveDraft = () => {
-      if (!isDraftRestoredRef.current || isSubmitSavingRef.current || !hasEditorChangesRef.current) return;
+      if (
+        !isDraftRestoredRef.current ||
+        isSubmitSavingRef.current ||
+        isAutoSavingRef.current ||
+        !hasEditorChangesRef.current
+      ) {
+        return;
+      }
       if (!draftRef.current) return;
       const nextDraft = { ...draftRef.current, updatedAt: Date.now() };
       persistDraft(nextDraft);
     };
 
-    const intervalId = window.setInterval(saveDraft, AUTO_SAVE_INTERVAL_MS);
     window.addEventListener('beforeunload', saveDraft);
     document.addEventListener('visibilitychange', saveDraft);
 
     return () => {
-      window.clearInterval(intervalId);
       window.removeEventListener('beforeunload', saveDraft);
       document.removeEventListener('visibilitychange', saveDraft);
     };
@@ -328,7 +363,111 @@ export const PostEditor: React.FC = () => {
     }
   };
 
+  const buildPostPayload = useCallback(() => {
+    return {
+      title: title.trim(),
+      summary: summary.trim() || undefined,
+      content,
+      banner: banner || undefined,
+      slug: (slug ?? '').trim() || undefined,
+      tagIds: selectedTagIds,
+      collectionIds: selectedCollectionIds,
+      status,
+    };
+  }, [title, summary, content, banner, slug, selectedTagIds, selectedCollectionIds, status]);
 
+  const persistPost = useCallback(
+    async (options: { autoSave: boolean }): Promise<PersistPostResult | null> => {
+      const payload = buildPostPayload();
+      const hasPersistableContent =
+        payload.title.length > 0 ||
+        payload.content.length > 0 ||
+        payload.summary !== undefined ||
+        payload.banner !== undefined ||
+        (payload.slug?.length ?? 0) > 0 ||
+        payload.tagIds.length > 0 ||
+        payload.collectionIds.length > 0;
+
+      if (!options.autoSave && !payload.title.length) {
+        toast({
+          title: 'Missing information',
+          description: 'Please enter a post title.',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
+      if (!hasPersistableContent) {
+        return null;
+      }
+
+      if (options.autoSave) {
+        if (isAutoSavingRef.current || isSubmitSavingRef.current) return null;
+        setIsAutoSaving(true);
+        isAutoSavingRef.current = true;
+      } else {
+        if (isSubmitSavingRef.current || isAutoSavingRef.current) return null;
+        setIsSaving(true);
+        isSubmitSavingRef.current = true;
+      }
+
+      const currentPostId = persistedPostIdRef.current ?? editPostId;
+
+      try {
+        if (currentPostId) {
+          await updatePostApi(currentPostId, payload);
+          syncSavedSnapshot(draftRef.current ?? buildDraft());
+          if (options.autoSave) {
+            setLastAutoSavedAt(Date.now());
+          }
+          return { action: 'updated' as const, postId: currentPostId };
+        }
+
+        const createdPost = await createPostApi(payload);
+        syncSavedSnapshot(draftRef.current ?? buildDraft());
+        if (createdPost?.id) {
+          setPersistedPostId(createdPost.id);
+          persistedPostIdRef.current = createdPost.id;
+        }
+        if (options.autoSave) {
+          setLastAutoSavedAt(Date.now());
+        }
+        return { action: 'created' as const, postId: createdPost.id };
+      } catch (err) {
+        console.error('Failed to save post:', err);
+        if (options.autoSave && draftRef.current) {
+          persistDraft({ ...draftRef.current, updatedAt: Date.now() }, { updateLastSavedAt: false });
+        }
+        if (!options.autoSave) {
+          const errMsg = getErrorMessage(err, 'Could not save post. Please review inputs.');
+          toast({
+            title: 'Save Failed',
+            description: errMsg,
+            variant: 'destructive',
+          });
+        }
+        return null;
+      } finally {
+        if (options.autoSave) {
+          setIsAutoSaving(false);
+          isAutoSavingRef.current = false;
+        } else {
+          setIsSaving(false);
+          isSubmitSavingRef.current = false;
+        }
+      }
+    },
+    [
+      buildPostPayload,
+      editPostId,
+      persistDraft,
+      toast,
+    ]
+  );
+
+  useEffect(() => {
+    persistPostRef.current = persistPost;
+  }, [persistPost]);
 
   const handleSavePost = useCallback(async () => {
     if (!title.trim()) {
@@ -340,41 +479,45 @@ export const PostEditor: React.FC = () => {
       return;
     }
 
+    if (isSubmitSavingRef.current || isAutoSavingRef.current) return;
+
     setIsSaving(true);
     isSubmitSavingRef.current = true;
-    
-    const payload = {
-      title: title.trim(),
-      summary: summary.trim() || undefined,
-      content,
-      banner: banner || undefined,
-      slug: slug.trim() || undefined,
-      tagIds: selectedTagIds,
-      collectionIds: selectedCollectionIds,
-      status,
-    };
 
     try {
-      if (editPostId) {
-        await updatePostApi(editPostId, payload);
-        toast({
-          title: 'Post Updated',
-          description: 'Your changes have been saved successfully.',
-          variant: 'success',
-        });
-      } else {
-        await createPostApi(payload);
-        toast({
-          title: 'Post Created',
-          description: 'Your new post has been published.',
-          variant: 'success',
-        });
+      const result = await savePost({
+        title,
+        summary,
+        content,
+        banner,
+        slug,
+        selectedTagIds,
+        selectedCollectionIds,
+        status,
+        editPostId,
+        persistedPostId: persistedPostIdRef.current,
+        buildDraft: () => draftRef.current ?? buildDraft(),
+        createPost: createPostApi,
+        updatePost: updatePostApi,
+        syncSavedSnapshot,
+      });
+
+      if (result.action === 'created') {
+        setPersistedPostId(result.postId);
+        persistedPostIdRef.current = result.postId;
       }
+      toast({
+        title: result.action === 'created' ? 'Post Created' : 'Post Updated',
+        description:
+          result.action === 'created'
+            ? 'Your new post has been saved successfully.'
+            : 'Your changes have been saved successfully.',
+        variant: 'success',
+      });
       clearStoredDraft();
       navigate(backUrl);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save post:', err);
-      isSubmitSavingRef.current = false;
       const errMsg = getErrorMessage(err, 'Could not save post. Please review inputs.');
       toast({
         title: 'Save Failed',
@@ -383,10 +526,10 @@ export const PostEditor: React.FC = () => {
       });
     } finally {
       setIsSaving(false);
+      isSubmitSavingRef.current = false;
     }
   }, [
     title,
-    toast,
     summary,
     content,
     banner,
@@ -395,10 +538,28 @@ export const PostEditor: React.FC = () => {
     selectedCollectionIds,
     status,
     editPostId,
+    toast,
+    syncSavedSnapshot,
+    buildDraft,
     clearStoredDraft,
     navigate,
     backUrl,
   ]);
+
+  useEffect(() => {
+    const autoSavePost = async () => {
+      if (!isDraftRestoredRef.current || !hasEditorChangesRef.current) return;
+      const result = await persistPostRef.current({ autoSave: true });
+      if (result) {
+        clearStoredDraft();
+      }
+    };
+
+    const intervalId = window.setInterval(autoSavePost, AUTO_SAVE_INTERVAL_MS);
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [clearStoredDraft]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -456,6 +617,7 @@ export const PostEditor: React.FC = () => {
             <EditorHeader
               isEditMode={!!editPostId}
               isSaving={isSaving}
+              isAutoSaving={isAutoSaving}
               onBack={handleBack}
               onSave={handleSavePost}
             />
@@ -465,11 +627,16 @@ export const PostEditor: React.FC = () => {
           <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
             <Button
               onClick={handleSavePost}
-              disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl px-4 py-2.5 shadow-xl flex items-center gap-1.5 cursor-pointer"
+              disabled={isSaving || isAutoSaving}
+              className={`bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl px-4 py-2.5 shadow-xl flex items-center gap-1.5 cursor-pointer ${
+                isSaving || isAutoSaving ? 'opacity-60' : ''
+              }`}
             >
-              {isSaving ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {isSaving || isAutoSaving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  {isAutoSaving ? 'Auto-saving...' : 'Saving...'}
+                </>
               ) : (
                 <>
                   <Save className="w-3.5 h-3.5" /> Save

@@ -1,6 +1,9 @@
 import axios from 'axios';
 import type { RefreshResponse } from '../types/auth';
-import { clearStoredAuth } from '\../utils/authTokens';
+import {
+  clearStoredAuth,
+  isStoredSessionExpired,
+} from '../utils/authTokens';
 
 const API_TARGET = import.meta.env.VITE_API_TARGET || 'http://localhost:8787';
 const isDev = import.meta.env.DEV
@@ -20,6 +23,10 @@ export const requestAccessTokenRefresh = async (): Promise<string> => {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
+    if (isStoredSessionExpired()) {
+      throw new Error('Session expired');
+    }
+
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) {
       throw new Error('Missing refresh token');

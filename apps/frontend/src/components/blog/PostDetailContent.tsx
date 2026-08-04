@@ -12,12 +12,12 @@ export const PostDetailContent: React.FC<PostDetailContentProps> = React.memo(({
   tags
 }) => {
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const frameId = window.requestAnimationFrame(() => {
       document.querySelectorAll('.markdown-content pre code').forEach((block) => {
         hljs.highlightElement(block as HTMLElement);
       });
-    }, 50);
-    return () => clearTimeout(timer);
+    });
+    return () => window.cancelAnimationFrame(frameId);
   }, [contentHtml]);
 
   return (
@@ -42,4 +42,3 @@ export const PostDetailContent: React.FC<PostDetailContentProps> = React.memo(({
     </div>
   );
 });
-

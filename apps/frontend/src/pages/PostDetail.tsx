@@ -10,7 +10,6 @@ import { Footer } from '../components/Footer';
 import { PostDetailHeader } from '../components/blog/PostDetailHeader';
 import { PostDetailContent } from '../components/blog/PostDetailContent';
 import { PostDetailSkeleton } from '../components/ui/Skeleton';
-import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import 'highlight.js/styles/github-dark.css';
 import {
@@ -68,11 +67,10 @@ export const PostDetail: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const getHtmlContent = (markdownText: string) => {
-    const rawHtml = marked.parse(markdownText || '') as string;
-    return DOMPurify.sanitize(rawHtml, {
+  const getHtmlContent = (content: string) => {
+    return DOMPurify.sanitize(content || '', {
       ADD_TAGS: ['pre', 'code', 'span'],
-      ADD_ATTR: ['class', 'style'],
+      ADD_ATTR: ['class', 'style', 'data-language', 'data-highlighted'],
     });
   };
 
