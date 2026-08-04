@@ -1,4 +1,5 @@
 import { AuthMiddleware } from '@/middleware/auth.middleware';
+import { rateLimitMiddleware } from '@/middleware/rateLimit.middlware';
 import { AppEnv } from '@/types/env';
 import { Hono } from 'hono';
 import { describeRoute, validator } from 'hono-openapi';
@@ -27,6 +28,14 @@ route.post(
         summary: 'Create AI Chat session',
         description: 'Initialize a new chat session for the authenticated user.',
     }),
+    rateLimitMiddleware({
+        limit: 3,
+        window: '15 m',
+        key: (c) => {
+            const user = c.get('user');
+            return `${user.sub}:chat-session`;
+        },
+    }),
     validator('json', CreateChatSessionDto),
     async (c) => {
         const db = await c.get('db');
@@ -44,6 +53,14 @@ route.get(
         summary: 'Get user chat sessions',
         description: 'Get all chat sessions associated with the authenticated user.',
     }),
+    rateLimitMiddleware({
+        limit: 30,
+        window: '1 m',
+        key: (c) => {
+            const user = c.get('user');
+            return `${user.sub}:chat-sessions`;
+        },
+    }),
     async (c) => {
         const db = await c.get('db');
         const user = c.get('user');
@@ -59,6 +76,14 @@ route.get(
         tags,
         summary: 'Get session messages',
         description: 'Retrieve conversation history for a given chat session code.',
+    }),
+    rateLimitMiddleware({
+        limit: 30,
+        window: '1 m',
+        key: (c) => {
+            const user = c.get('user');
+            return `${user.sub}:chat-messages`;
+        },
     }),
     validator('param', ChatSessionCodeParam),
     async (c) => {
@@ -77,6 +102,14 @@ route.post(
         tags,
         summary: 'Send message to AI Chat session',
         description: 'Post a new message to a session and get the AI assistant response.',
+    }),
+    rateLimitMiddleware({
+        limit: 10,
+        window: '5 m',
+        key: (c) => {
+            const user = c.get('user');
+            return `${user.sub}:chat-message`;
+        },
     }),
     validator('json', SendMessageDto),
     async (c) => {
