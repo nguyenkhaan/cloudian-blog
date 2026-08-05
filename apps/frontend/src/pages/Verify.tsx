@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { getErrorMessage } from '../utils/errors';
+import { normalizeEmailChangeTarget } from '../utils/emailChange';
 
 export const Verify: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +17,9 @@ export const Verify: React.FC = () => {
   const [message, setMessage] = useState('');
 
   const code = searchParams.get('code') || searchParams.get('token');
+  const verificationTarget = normalizeEmailChangeTarget(
+    searchParams.get('verificationTarget')
+  );
 
   useEffect(() => {
     const performVerification = async () => {
@@ -28,10 +32,14 @@ export const Verify: React.FC = () => {
       try {
         const isEmailChange = window.location.pathname.includes('/verify-email-change');
         if (isEmailChange) {
-          await verifyChangeEmailApi(code);
+          await verifyChangeEmailApi(code, verificationTarget);
           logout();
           setStatus('success');
-          setMessage('Your email address has been successfully changed! Please sign in again with your new email.');
+          setMessage(
+            verificationTarget === 'new'
+              ? 'Your fallback verification link has been confirmed. Your email change is now active.'
+              : 'Your email change has been confirmed through your current inbox. Please sign in again with the updated email.'
+          );
         } else {
           await verifyAccountApi(code);
           setStatus('success');

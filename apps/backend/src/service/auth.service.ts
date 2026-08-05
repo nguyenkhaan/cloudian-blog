@@ -449,11 +449,23 @@ export async function verifyChangeEmail(
                 message: 'Invalid token',
             });
         const user = await db.query.UserModel.findFirst({
-            where: and(eq(UserModel.id, id), eq(UserModel.email, oldEmail)),
+            where: eq(UserModel.id, id),
+            columns: {
+                id: true,
+                email: true,
+            },
         });
         if (!user) {
             throw new HTTPException(404, {
                 message: 'User not found',
+            });
+        }
+        if (user.email === newEmail) {
+            return "Account's email has been reset successfully";
+        }
+        if (user.email !== oldEmail) {
+            throw new HTTPException(400, {
+                message: 'Invalid token',
             });
         }
         await db

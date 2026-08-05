@@ -6,21 +6,28 @@ import {
   getReportsApi,
   updateReportStatusApi,
   getAllCommentsApi,
-  updateCommentStatusApi
+  updateCommentStatusApi,
+  getUsersApi,
+  updateUserStatusApi,
+  requestAdminUserEmailChangeApi,
 } from '../api/admin';
-import type { ReportItem, AdminCommentItem } from '../api/admin';
+import type { ReportItem, AdminCommentItem, AdminUserItem } from '../api/admin';
 import { deletePostApi, updatePostStatusApi, getManagerPostsApi, getAdminPostsApi } from '../api/post';
 import type { Post } from '../types/post';
-import { registerApi, forgotPasswordApi, changeEmailApi } from '../api/auth';
+import { registerApi, forgotPasswordApi, requestEmailChangeApi } from '../api/auth';
 import { Button } from '../components/ui/button';
-import { PasswordConfirmModal } from '../components/PasswordConfirmModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import {
+  type EmailChangeVerificationTarget,
+  getEmailChangeSuccessMessage,
+} from '../utils/emailChange';
 
 // Extracted Tab Components
 import { DashboardReports } from '../components/dashboard/DashboardReports';
 import { DashboardBlogs } from '../components/dashboard/DashboardBlogs';
 import { DashboardManagers } from '../components/dashboard/DashboardManagers';
 import { DashboardUsers } from '../components/dashboard/DashboardUsers';
+import { UserEmailChangeModal } from '../components/dashboard/UserEmailChangeModal';
 import { DashboardMyBlogs } from '../components/dashboard/DashboardMyBlogs';
 import { DashboardProfile } from '../components/dashboard/DashboardProfile';
 import { DashboardTaxonomy } from '../components/dashboard/DashboardTaxonomy';
@@ -64,15 +71,6 @@ const paramToTabMap: Record<string, TabType> = {
   'my_blogs': 'my_blogs',
   'profile': 'profile'
 };
-
-const MOCK_USERS = [
-  { id: 1, name: 'System Administrator', email: 'admin@gmail.com', roles: ['admin', 'manager'], joinedAt: '2026-01-10T08:00:00Z', status: 'active' },
-  { id: 2, name: 'Content Creator', email: 'manager@gmail.com', roles: ['manager'], joinedAt: '2026-02-15T09:30:00Z', status: 'active' },
-  { id: 3, name: 'Alex Rivera', email: 'alex@gmail.com', roles: ['manager'], joinedAt: '2026-03-01T10:00:00Z', status: 'active' },
-  { id: 4, name: 'Sarah Chen', email: 'sarah@gmail.com', roles: ['manager'], joinedAt: '2026-03-12T14:20:00Z', status: 'active' },
-  { id: 5, name: 'Google Reader', email: 'reader@gmail.com', roles: ['user'], joinedAt: '2026-04-18T16:45:00Z', status: 'active' },
-  { id: 6, name: 'Dave Johnson', email: 'dave@gmail.com', roles: ['user'], joinedAt: '2026-05-02T11:00:00Z', status: 'suspended' },
-];
 
 export const Dashboard: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -124,6 +122,15 @@ export const Dashboard: React.FC = () => {
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isUpdatingCommentId, setIsUpdatingCommentId] = useState<number | null>(null);
 
+  // Admin users state
+  const [usersList, setUsersList] = useState<AdminUserItem[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
+  const [selectedUserForEmailEdit, setSelectedUserForEmailEdit] = useState<AdminUserItem | null>(null);
+  const [adminUserEmailDraft, setAdminUserEmailDraft] = useState('');
+  const [isSubmittingAdminUserEmail, setIsSubmittingAdminUserEmail] = useState(false);
+  const [adminUserEmailError, setAdminUserEmailError] = useState<string | null>(null);
+
   // System blogs state (Admin tab)
   const [blogs, setBlogs] = useState<Post[]>([]);
   const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
@@ -134,17 +141,15 @@ export const Dashboard: React.FC = () => {
   const [managerPosts, setManagerPosts] = useState<Post[]>([]);
   const [isLoadingManagerPosts, setIsLoadingManagerPosts] = useState(false);
 
-  // Users state
-  const [usersList, setUsersList] = useState(MOCK_USERS);
-
   // Editable Profile state
   const [editName, setEditName] = useState(user?.name || '');
   const [editNickname, setEditNickname] = useState(user?.nickName || '');
   const [editEmail, setEditEmail] = useState(user?.email || '');
+  const [emailVerificationTarget, setEmailVerificationTarget] = useState<EmailChangeVerificationTarget>('old');
+  const [emailChangeNotice, setEmailChangeNotice] = useState<string | null>(null);
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [pendingNewEmail, setPendingNewEmail] = useState('');
 
   // New Manager form
   const [managerName, setManagerName] = useState('');
@@ -179,6 +184,8 @@ export const Dashboard: React.FC = () => {
       fetchComments();
     } else if (activeTab === 'blogs' && isAdmin) {
       fetchBlogs();
+    } else if (activeTab === 'users' && isAdmin) {
+      fetchUsers();
     } else if (activeTab === 'my_blogs' && isManager) {
       fetchManagerPosts();
     }
@@ -189,6 +196,9 @@ export const Dashboard: React.FC = () => {
       setEditName(user.name || '');
       setEditNickname(user.nickName || '');
       setEditEmail(user.email || '');
+      setEmailVerificationTarget('old');
+      setEmailChangeNotice(null);
+      setEmailChangeError(null);
     }
   }, [user]);
 
@@ -215,6 +225,19 @@ export const Dashboard: React.FC = () => {
       setError('Failed to load comments.');
     } finally {
       setIsLoadingComments(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    setError(null);
+    try {
+      const data = await getUsersApi();
+      setUsersList(data);
+    } catch (err) {
+      setError('Failed to load users.');
+    } finally {
+      setIsLoadingUsers(false);
     }
   };
 
@@ -358,38 +381,73 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleToggleUserStatus = (userId: number) => {
-    const targetUser = usersList.find(u => u.id === userId);
-    if (!targetUser) return;
-    const nextStatus = targetUser.status === 'active' ? 'suspended' : 'active';
-    setUsersList(prev => prev.map(u => 
-      u.id === userId ? { ...u, status: nextStatus } : u
-    ));
-    toast({
-      description: `User status updated to ${nextStatus}.`,
-      variant: 'success',
-    });
-  };
-
-  const handleConfirmEmailChange = async (passwordConfirm: string) => {
-    if (!user) return;
-    setIsSavingProfile(true);
+  const handleToggleUserStatus = async (userId: number) => {
+    setUpdatingUserId(userId);
+    setError(null);
     try {
-      await changeEmailApi(pendingNewEmail, passwordConfirm);
-      
+      const response = await updateUserStatusApi(userId);
+      setUsersList((prev) =>
+        prev.map((userItem) =>
+          userItem.id === userId ? response.user : userItem
+        )
+      );
       toast({
-        title: 'Email Verification Sent',
-        description: 'A verification link has been sent to your new email. Please check your mailbox!',
+        description: `User status updated to ${response.user.status}.`,
         variant: 'success',
       });
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
     } catch (err: any) {
-      throw err; // Let PasswordConfirmModal handle the error internally
+      setError(getErrorMessage(err, 'Error updating user status.'));
     } finally {
-      setIsSavingProfile(false);
+      setUpdatingUserId(null);
+    }
+  };
+
+  const handleOpenUserEmailEdit = (userItem: AdminUserItem) => {
+    setSelectedUserForEmailEdit(userItem);
+    setAdminUserEmailDraft(userItem.email);
+    setAdminUserEmailError(null);
+  };
+
+  const handleCancelUserEmailEdit = () => {
+    setSelectedUserForEmailEdit(null);
+    setAdminUserEmailDraft('');
+    setAdminUserEmailError(null);
+  };
+
+  const handleSubmitUserEmailEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserForEmailEdit) return;
+
+    const nextEmail = adminUserEmailDraft.trim();
+    if (!nextEmail) {
+      setAdminUserEmailError('Please enter a valid email address.');
+      return;
+    }
+    if (nextEmail === selectedUserForEmailEdit.email) {
+      setAdminUserEmailError('The new email must be different from the current email.');
+      return;
+    }
+
+    setIsSubmittingAdminUserEmail(true);
+    setAdminUserEmailError(null);
+    try {
+      await requestAdminUserEmailChangeApi(selectedUserForEmailEdit.id, nextEmail);
+      toast({
+        title: 'Verification Email Sent',
+        description: getEmailChangeSuccessMessage('new', nextEmail),
+        variant: 'success',
+      });
+      handleCancelUserEmailEdit();
+    } catch (err: any) {
+      const message = getErrorMessage(err, 'Failed to request the email change.');
+      setAdminUserEmailError(message);
+      toast({
+        title: 'Error changing user email',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmittingAdminUserEmail(false);
     }
   };
 
@@ -438,6 +496,7 @@ export const Dashboard: React.FC = () => {
   const handleEmailUpdateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editEmail.trim() || !editEmail.includes('@')) {
+      setEmailChangeError('Please enter a valid email address.');
       toast({
         title: 'Invalid Email',
         description: 'Please enter a valid email address.',
@@ -447,13 +506,46 @@ export const Dashboard: React.FC = () => {
     }
     if (user) {
       if (editEmail.trim() === user.email) {
+        setEmailChangeError(null);
+        setEmailChangeNotice(null);
         toast({
           description: 'This email matches your current email address.',
         });
         return;
       }
-      setPendingNewEmail(editEmail.trim());
-      setIsPasswordModalOpen(true);
+      const newEmail = editEmail.trim();
+      setIsSavingProfile(true);
+      setError(null);
+      setEmailChangeError(null);
+      setEmailChangeNotice(null);
+      requestEmailChangeApi({
+        email: newEmail,
+        verificationTarget: emailVerificationTarget,
+      })
+        .then(() => {
+          const message = getEmailChangeSuccessMessage(emailVerificationTarget, newEmail);
+          setEmailChangeNotice(message);
+          setEmailChangeError(null);
+          toast({
+            title: 'Verification Link Sent',
+            description: message,
+            variant: 'success',
+          });
+          setEditEmail(user.email);
+          setEmailVerificationTarget('old');
+        })
+        .catch((err: any) => {
+          const message = getErrorMessage(err, 'Failed to request email change.');
+          setEmailChangeError(message);
+          toast({
+            title: 'Error changing email',
+            description: message,
+            variant: 'destructive',
+          });
+        })
+        .finally(() => {
+          setIsSavingProfile(false);
+        });
     }
   };
 
@@ -764,7 +856,10 @@ export const Dashboard: React.FC = () => {
         {activeTab === 'users' && isAdmin && (
           <DashboardUsers
             usersList={usersList}
+            isLoadingUsers={isLoadingUsers}
+            updatingUserId={updatingUserId}
             handleToggleUserStatus={handleToggleUserStatus}
+            handleEditUserEmail={handleOpenUserEmailEdit}
           />
         )}
 
@@ -789,6 +884,10 @@ export const Dashboard: React.FC = () => {
             setEditNickname={setEditNickname}
             editEmail={editEmail}
             setEditEmail={setEditEmail}
+            emailVerificationTarget={emailVerificationTarget}
+            setEmailVerificationTarget={setEmailVerificationTarget}
+            emailChangeNotice={emailChangeNotice}
+            emailChangeError={emailChangeError}
             isSavingProfile={isSavingProfile}
             handleUpdateProfile={handleUpdateProfile}
             handleEmailUpdateSubmit={handleEmailUpdateSubmit}
@@ -849,10 +948,15 @@ export const Dashboard: React.FC = () => {
         onCancel={() => setBlogIdToDelete(null)}
       />
 
-      <PasswordConfirmModal
-        isOpen={isPasswordModalOpen}
-        onClose={() => { setIsPasswordModalOpen(false); setPendingNewEmail(''); }}
-        onConfirm={handleConfirmEmailChange}
+      <UserEmailChangeModal
+        isOpen={selectedUserForEmailEdit !== null}
+        user={selectedUserForEmailEdit}
+        email={adminUserEmailDraft}
+        setEmail={setAdminUserEmailDraft}
+        onSubmit={handleSubmitUserEmailEdit}
+        onCancel={handleCancelUserEmailEdit}
+        isSubmitting={isSubmittingAdminUserEmail}
+        errorMessage={adminUserEmailError}
       />
 
     </div>

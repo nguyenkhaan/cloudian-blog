@@ -1,9 +1,14 @@
 import React from 'react';
 import { Button } from '../ui/button';
-import { LogOut, Loader2, Check } from 'lucide-react';
+import { LogOut, Loader2, Check, ShieldCheck, MailCheck } from 'lucide-react';
 import type { User } from '../../types/auth';
 import type { ReportItem } from '../../api/admin';
 import type { Post } from '../../types/post';
+import type { EmailChangeVerificationTarget } from '../../utils/emailChange';
+import {
+  getEmailChangeTargetDescription,
+  getEmailChangeTargetLabel,
+} from '../../utils/emailChange';
 
 interface DashboardProfileProps {
   user: User | null;
@@ -17,6 +22,10 @@ interface DashboardProfileProps {
   setEditNickname: (val: string) => void;
   editEmail: string;
   setEditEmail: (val: string) => void;
+  emailVerificationTarget: EmailChangeVerificationTarget;
+  setEmailVerificationTarget: (val: EmailChangeVerificationTarget) => void;
+  emailChangeNotice: string | null;
+  emailChangeError: string | null;
   isSavingProfile: boolean;
   handleUpdateProfile: (e: React.FormEvent) => void;
   handleEmailUpdateSubmit: (e: React.FormEvent) => void;
@@ -38,6 +47,10 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
   setEditNickname,
   editEmail,
   setEditEmail,
+  emailVerificationTarget,
+  setEmailVerificationTarget,
+  emailChangeNotice,
+  emailChangeError,
   isSavingProfile,
   handleUpdateProfile,
   handleEmailUpdateSubmit,
@@ -117,6 +130,18 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
 
         {/* Settings & Info Form */}
         <div className="lg:col-span-2 space-y-6">
+          {/* <div className="rounded-2xl border border-slate-200 dark:border-border bg-slate-50/70 dark:bg-card/70 p-5 space-y-3">
+            <div className="flex items-center gap-2 text-slate-800 dark:text-foreground">
+              <MailCheck className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-black tracking-tight">Email change flow</h3>
+            </div>
+            <div className="grid gap-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              <p>1. We keep your current email active until verification completes.</p>
+              <p>2. We send the primary confirmation link to the current inbox.</p>
+              <p>3. If you cannot access that inbox, switch to the fallback verification path.</p>
+            </div>
+          </div> */}
+
           {/* Edit Profile Form */}
           <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 transition-colors duration-300 space-y-4">
             <h3 className="font-extrabold text-base text-slate-800 dark:text-foreground">Edit Account Information</h3>
@@ -164,6 +189,22 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
           {/* Change Email Section */}
           <div className="bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 transition-colors duration-300 space-y-4">
             <h3 className="font-extrabold text-base text-slate-800 dark:text-foreground">Change Email Address</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              You do not need to enter a password. Choose the inbox that can still receive the confirmation link.
+            </p>
+            {emailChangeNotice && (
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/80 dark:bg-emerald-950/20 dark:border-emerald-900/40 p-4 text-sm text-slate-700 dark:text-slate-200">
+                <div className="flex items-start gap-2.5">
+                  <MailCheck className="w-4.5 h-4.5 text-emerald-600 mt-0.5" />
+                  <p className="leading-relaxed">{emailChangeNotice}</p>
+                </div>
+              </div>
+            )}
+            {emailChangeError && (
+              <div className="rounded-xl border border-red-100 bg-red-50/80 dark:bg-red-950/20 dark:border-red-900/40 p-4 text-sm text-red-700 dark:text-red-300">
+                <p className="leading-relaxed font-medium">{emailChangeError}</p>
+              </div>
+            )}
             <form onSubmit={handleEmailUpdateSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-350 block">New Email Address</label>
@@ -175,6 +216,44 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
                   className="w-full px-4 py-3 bg-white dark:bg-background border border-slate-300 dark:border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-black dark:text-foreground font-semibold"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-350 block">
+                  Verification method
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {(['old', 'new'] as EmailChangeVerificationTarget[]).map((target) => {
+                    const active = emailVerificationTarget === target;
+                    return (
+                      <button
+                        key={target}
+                        type="button"
+                        onClick={() => setEmailVerificationTarget(target)}
+                        className={`text-left rounded-2xl border p-4 transition-all cursor-pointer ${
+                          active
+                            ? 'border-primary bg-primary/5 shadow-sm'
+                            : 'border-slate-200 dark:border-border bg-white dark:bg-background hover:border-slate-300 dark:hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <div className={`mt-0.5 rounded-full p-1 ${
+                            active ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300'
+                          }`}>
+                            {target === 'old' ? <ShieldCheck className="w-3.5 h-3.5" /> : <MailCheck className="w-3.5 h-3.5" />}
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-sm font-extrabold text-slate-800 dark:text-foreground">
+                              {getEmailChangeTargetLabel(target)}
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                              {getEmailChangeTargetDescription(target)}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="flex justify-end">
                 <Button
                   type="submit"
@@ -184,7 +263,7 @@ export const DashboardProfile: React.FC<DashboardProfileProps> = ({
                   {isSavingProfile ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    'Update Email'
+                    'Send Verification Link'
                   )}
                 </Button>
               </div>

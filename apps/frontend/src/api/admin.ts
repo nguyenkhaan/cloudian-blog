@@ -15,6 +15,17 @@ export interface ReportItem {
   };
 }
 
+export interface AdminUserItem {
+  id: number;
+  name: string;
+  email: string;
+  nickName: string | null;
+  roles: string[];
+  providers: string[];
+  joinedAt: string | null;
+  status: 'active' | 'suspended';
+}
+
 export interface AdminCommentItem {
   id: number;
   content: string;
@@ -63,5 +74,28 @@ export const updateCommentStatusApi = async (
   const response = await client.put<{ success: boolean }>(`/comments/${commentId}/status`, {
     status,
   });
+  return response.data;
+};
+
+export const getUsersApi = async (): Promise<AdminUserItem[]> => {
+  const response = await client.get<AdminUserItem[]>('/users');
+  return response.data;
+};
+
+export const updateUserStatusApi = async (
+  userId: number
+): Promise<{ success: boolean; user: AdminUserItem }> => {
+  const response = await client.patch<{ success: boolean; user: AdminUserItem }>(`/users/${userId}/status`);
+  return response.data;
+};
+
+export const requestAdminUserEmailChangeApi = async (
+  userId: number,
+  email: string
+): Promise<{ success: boolean; sentTo: string; verificationTarget: 'new'; email: string }> => {
+  const response = await client.post<{ success: boolean; sentTo: string; verificationTarget: 'new'; email: string }>(
+    `/users/${userId}/change-email`,
+    { email }
+  );
   return response.data;
 };

@@ -18,6 +18,7 @@ import CommentRoute from '@/controller/comment.controller';
 import ReportRoute from '@/controller/report.controller';
 import SubscriberRoute from '@/controller/subscriber.controller';
 import ChatRoute from '@/controller/chat.controller';
+import UserRoute from '@/controller/user.controller';
 import { redisMiddleware } from './middleware/redis.middleware';
 import { cors } from 'hono/cors'
 
@@ -116,5 +117,6 @@ apiRoute.route('/comments', CommentRoute);
 apiRoute.route('/reports', ReportRoute);
 apiRoute.route('/subscribers', SubscriberRoute);
 apiRoute.route('/chat', ChatRoute);
+apiRoute.route('/users', UserRoute);
 app.route('/api', apiRoute);
 export default app;

@@ -16,10 +16,10 @@ export const getEmailChangeTargetDescription = (
   target: EmailChangeVerificationTarget
 ) => {
   if (target === 'new') {
-    return 'Use this if you can no longer access your current inbox. We will send the confirmation link to the new address.';
+    return 'Use this if you can no longer access your current inbox. We will send the confirmation link to the new one.';
   }
 
-  return 'Recommended. We will keep your current email active and send the confirmation link there first.';
+  return 'Recommended. We will keep your current email active and send the confirmation link in your inbox.';
 };
 
 export const getEmailChangeSuccessMessage = (
