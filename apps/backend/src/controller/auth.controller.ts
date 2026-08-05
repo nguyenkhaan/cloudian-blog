@@ -3,18 +3,20 @@ import { Hono } from 'hono';
 import { describeRoute, validator } from 'hono-openapi';
 import { MailService } from '@/service/mail.service';
 import {
-    changeEmail,
+    changeUserEmail,
     changePassword,
     forgotPassword,
     login,
     loginGoogle,
     refresh,
+    requestEmailChange,
     register,
     verify,
     verifyChangeEmail,
 } from '@/service/auth.service';
 import {
     ChangeEmailDto,
+    ChangeEmailParam,
     ChangePasswordDto,
     ChangePasswordQuery,
     ForgotPasswordQuery,
@@ -24,6 +26,7 @@ import {
     RegisterDto,
     VerifyChangeEmailDto,
     VerifyQuery,
+    RequestEmailChangeDto,
 } from '@/schema/auth.schema';
 import { AuthMiddleware } from '@/middleware/auth.middleware';
 import { requireRole } from '@/middleware/role.middlware';
@@ -168,27 +171,70 @@ route.post(
 route.post(
     '/change-email',
     describeRoute({
-        summary: 'Change email',
+        summary: 'Request email change',
         tags,
-        description: "Change account's email",
+        description: "Request a email change for the currently user.",
     }),
     AuthMiddleware,
-    validator('json', ChangeEmailDto),
+    validator('json', RequestEmailChangeDto),
     async (c) => {
         const db = await c.get('db');
-        const user = await c.get('user');
         const data = await c.req.valid('json');
-        const secretKey = c.env.JWT_VERIFY_RESET_EMAIL;
         const mailService = new MailService(c.env);
-        const response = await changeEmail(
+        const response = await requestEmailChange(
             db,
-            Number(user.sub),
+            Number(c.get('user').sub),
             data,
-            secretKey,
+            c.env.JWT_VERIFY_RESET_EMAIL,
             c.env.FE_URL,
             mailService
         );
         return c.json(response);
+    }
+);
+
+route.post(
+    '/change-email/:userId', 
+    describeRoute({
+        summary: "Change manager email", 
+        tags, 
+        description: "Route for admin changes manager's email"
+    }), 
+    AuthMiddleware, 
+    requireRole(Role.ADMIN), 
+    async (c) => {
+        const db = await c.get('db') 
+        const userId = ChangeEmailParam.parse({
+            userId: c.req.param('userId'),
+        });
+        const data = ChangeEmailDto.parse(await c.req.json());
+        const secretKey = c.env.JWT_VERIFY_RESET_EMAIL 
+        const mailService = new MailService(c.env) 
+        const response = await changeUserEmail(
+            db, 
+            Number(userId), 
+            data, 
+            secretKey, 
+            c.env.FE_URL, 
+            mailService
+        ) 
+        return c.json(response)
+    }
+)
+route.get(
+    '/verify-email-change',
+    describeRoute({
+        summary: 'Verify email change',
+        tags,
+        description: "Verify account's new email from either the old inbox or the fallback inbox.",
+    }),
+    validator('query', VerifyChangeEmailDto),
+    async (c) => {
+        const db = await c.get('db');
+        const { code } = await c.req.valid('query');
+        const secretKey = c.env.JWT_VERIFY_RESET_EMAIL;
+        const response = await verifyChangeEmail(db, code, secretKey);
+        return c.text(response);
     }
 );
 
@@ -202,9 +248,9 @@ route.get(
     validator('query', VerifyChangeEmailDto),
     async (c) => {
         const db = await c.get('db');
-        const { token } = await c.req.valid('query');
+        const { code } = await c.req.valid('query');
         const secretKey = c.env.JWT_VERIFY_RESET_EMAIL;
-        const response = await verifyChangeEmail(db, token, secretKey);
+        const response = await verifyChangeEmail(db, code, secretKey);
         return c.text(response);
     }
 );

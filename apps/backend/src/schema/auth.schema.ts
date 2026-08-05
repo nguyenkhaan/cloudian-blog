@@ -2,6 +2,8 @@
 //cho cac ham services neu can thiet.
 import { z } from 'zod';
 
+export const EmailChangeVerificationTarget = z.enum(['old', 'new']).default('old');
+
 export const LoginDto = z.object({
     email: z.string().meta({ example: 'cloudian@gmail.com' }),
     password: z.string().min(8).meta({ example: '1234567890' }),
@@ -40,18 +42,27 @@ export const ChangePasswordQuery = z.object({
 });
 
 export const ChangeEmailDto = z.object({
-    password: z.string().min(8).meta({
-        example: 'cloudian123',
-    }),
     email: z.email().meta({
         example: 'cloudian@gmail.com',
-    }),
+    }) 
 });
 
+export const RequestEmailChangeDto = z.object({
+    email: z.email().meta({
+        example: 'cloudian-new@gmail.com',
+    }),
+    verificationTarget: EmailChangeVerificationTarget.optional().default('old'),
+});
+
+export const ChangeEmailParam = z.object({
+    userId : z.coerce.number().meta({ example: '1' })
+})
+
 export const VerifyChangeEmailDto = z.object({
-    token: z.string().meta({
+    code: z.string().meta({
         example: 'abcxyz...',
     }),
+    verificationTarget: EmailChangeVerificationTarget.optional().default('old'),
 });
 
 export const RefreshDto = z.object({
@@ -63,6 +74,7 @@ export const LoginGoogleDto = z.object({
 });
 
 export type ChangeEmailType = z.infer<typeof ChangeEmailDto>;
+export type RequestEmailChangeType = z.infer<typeof RequestEmailChangeDto>;
 export type ChangePasswordType = z.infer<typeof ChangePasswordDto>;
 export type RegisterDtoType = z.infer<typeof RegisterDto>;
 export type LoginDtoType = z.infer<typeof LoginDto>;

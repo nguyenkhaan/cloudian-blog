@@ -5,6 +5,8 @@ import {
   getSessionMessagesApi,
   sendChatMessageApi
 } from '../api/chat';
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { ChatMessage } from '../types/chat';
 import { Button } from './ui/button';
 import {
@@ -226,7 +228,15 @@ export const ChatWidget: React.FC = () => {
                           : 'bg-white text-slate-800 border border-slate-150 rounded-bl-none'
                       }`}
                     >
-                      <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                      <div className='leading-relaxed'>
+                        <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        > 
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+
+                      
                     </div>
                   </div>
                 ))}

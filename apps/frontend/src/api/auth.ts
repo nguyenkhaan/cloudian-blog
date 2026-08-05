@@ -42,14 +42,23 @@ export const forgotPasswordApi = async (email: string): Promise<any> => {
   return response.data;
 };
 
-export const changeEmailApi = async (email: string, password: string): Promise<any> => {
-  const response = await client.post<any>('/auth/change-email', { email, password });
+export const requestEmailChangeApi = async (data: {
+  email: string;
+  verificationTarget?: 'old' | 'new';
+}): Promise<any> => {
+  const response = await client.post<any>('/auth/change-email', data);
   return response.data;
 };
 
-export const verifyChangeEmailApi = async (token: string): Promise<string> => {
-  const response = await client.get<string>('/auth/verify-change-email', {
-    params: { token },
+export const verifyChangeEmailApi = async (
+  code: string,
+  verificationTarget?: 'old' | 'new'
+): Promise<string> => {
+  const response = await client.get<string>('/auth/verify-email-change', {
+    params: {
+      code,
+      verificationTarget,
+    },
   });
   return response.data;
 };

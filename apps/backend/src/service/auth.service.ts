@@ -9,6 +9,7 @@ import {
     ChangePasswordType,
     RegisterDtoType,
     ChangeEmailType,
+    RequestEmailChangeType,
 } from '@/schema/auth.schema';
 import {
     ACCESS_TOKEN_LIVETIME,
@@ -22,6 +23,12 @@ import { AuthProvider, OAuthModel, Role, UserRoleModel } from '@/model';
 import { TemplateService } from './template.service';
 import { MailService } from './mail.service';
 import { AppEnv } from '@/types/env';
+import {
+    buildEmailChangeRequestPayload,
+    buildEmailChangeVerificationUrl,
+    resolveEmailChangeRecipient,
+    EmailChangeVerificationTarget,
+} from '@/helper/email-change';
 
 //_______________HELPER FUNCTION
 
@@ -333,10 +340,12 @@ export async function changePassword(
         throw err;
     }
 }
-export async function changeEmail(
+
+// Request email change for the current user or an admin-selected user.
+export async function requestEmailChange(
     db: ReturnType<typeof createDb>,
     userId: number,
-    data: ChangeEmailType,
+    data: RequestEmailChangeType,
     secretKey: string,
     FE: string,
     mailService: MailService
@@ -344,29 +353,41 @@ export async function changeEmail(
     try {
         const user = await db.query.UserModel.findFirst({
             where: eq(UserModel.id, userId),
+            with: {
+                roles: true,
+            },
         });
-        if (!user)
+        if (!user) {
             throw new HTTPException(404, {
                 message: 'User not found',
             });
-        const isPasswordMatch = await comparePass(data.password, user.password);
-        if (!isPasswordMatch)
-            throw new HTTPException(400, {
-                message: 'Wrong password',
-            });
-        const payload = {
-            sub: user.id.toString(),
-            email: data.email,
-            exp: Math.floor(Date.now() / 1000) + VERIFY_RESET_EMAIL,
-        };
+        }
+
+        const verificationTarget: EmailChangeVerificationTarget =
+            data.verificationTarget ?? 'old';
+        const payload = buildEmailChangeRequestPayload({
+            userId: user.id,
+            currentEmail: user.email,
+            newEmail: data.email,
+            verificationTarget,
+            expiresInSeconds: VERIFY_RESET_EMAIL,
+        });
         const token = await createToken(
             TokenType.VERIFY_RESET_EMAIL,
             payload,
             secretKey
         );
-
-        const resetUrl = `${FE}/verify-email-change?token=${token}`;
+        const resetUrl = buildEmailChangeVerificationUrl(
+            FE,
+            token,
+            verificationTarget
+        );
         const validMinutes = Math.floor(VERIFY_RESET_EMAIL / 60);
+        const recipient = resolveEmailChangeRecipient({
+            currentEmail: user.email,
+            newEmail: data.email,
+            verificationTarget,
+        });
         const html = TemplateService.resetEmail({
             name: user.name,
             newEmail: data.email,
@@ -374,18 +395,43 @@ export async function changeEmail(
             validMinutes,
         });
         await mailService.sendMail(
-            data.email,
+            recipient,
             'Confirm Your Email Address Change - Cloudian Blog',
             html
         );
 
         return {
-            token,
+            success: true,
+            sentTo: recipient,
+            verificationTarget,
+            email: data.email,
         };
     } catch (err) {
-        console.log('Change email error: ', err);
+        console.log('Change user email error');
         throw err;
     }
+}
+
+// Backward-compatible admin override wrapper.
+export async function changeUserEmail(
+    db: ReturnType<typeof createDb>,
+    userId: number,
+    data: ChangeEmailType,
+    secretKey: string,
+    FE: string,
+    mailService: MailService
+) {
+    return requestEmailChange(
+        db,
+        userId,
+        {
+            email: data.email,
+            verificationTarget: 'new',
+        },
+        secretKey,
+        FE,
+        mailService
+    );
 }
 
 export async function verifyChangeEmail(
@@ -396,15 +442,24 @@ export async function verifyChangeEmail(
     try {
         const payload = await verifyToken(token, secretKey);
         const id = Number(payload.sub);
-        const email = payload.email;
-        if (!id || !email)
+        const oldEmail = payload.oldEmail as string | undefined;
+        const newEmail = payload.newEmail as string | undefined;
+        if (!id || !oldEmail || !newEmail)
             throw new HTTPException(400, {
                 message: 'Invalid token',
             });
+        const user = await db.query.UserModel.findFirst({
+            where: and(eq(UserModel.id, id), eq(UserModel.email, oldEmail)),
+        });
+        if (!user) {
+            throw new HTTPException(404, {
+                message: 'User not found',
+            });
+        }
         await db
             .update(UserModel)
             .set({
-                email: email as string,
+                email: newEmail,
             })
             .where(eq(UserModel.id, id));
         return "Account's email has been reset successfully";
@@ -571,4 +626,3 @@ export async function loginGoogle(
         throw err;
     }
 }
-
