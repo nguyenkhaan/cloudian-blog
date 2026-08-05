@@ -33,7 +33,7 @@ export const ResetPassword: React.FC = () => {
 
     if (password.length < 8) {
       toast({
-        description: 'Mật khẩu phải chứa ít nhất 8 ký tự.',
+        description: 'Password must have at least 8 characters',
         variant: 'destructive',
       });
       return;
@@ -41,7 +41,7 @@ export const ResetPassword: React.FC = () => {
 
     if (password !== confirmPassword) {
       toast({
-        description: 'Mật khẩu xác nhận không khớp.',
+        description: 'Password confirmation is not match',
         variant: 'destructive',
       });
       return;
