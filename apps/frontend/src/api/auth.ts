@@ -50,6 +50,17 @@ export const requestEmailChangeApi = async (data: {
   return response.data;
 };
 
+export const updateProfileApi = async (data: {
+  name: string;
+  nickName?: string | null;
+}): Promise<{ success: boolean; user: import('../types/auth').User }> => {
+  const response = await client.patch<{ success: boolean; user: import('../types/auth').User }>(
+    '/users/me/profile',
+    data
+  );
+  return response.data;
+};
+
 export const verifyChangeEmailApi = async (
   code: string,
   verificationTarget?: 'old' | 'new'

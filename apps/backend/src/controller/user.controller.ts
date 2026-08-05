@@ -8,12 +8,39 @@ import { MailService } from '@/service/mail.service';
 import {
     getAdminUsers,
     requestAdminUserEmailChange,
+    updateCurrentUserProfile,
     updateAdminUserStatus,
 } from '@/service/user.service';
-import { UpdateUserEmailDto, UserIdParam } from '@/schema/user.schema';
+import {
+    UpdateProfileDto,
+    UpdateUserEmailDto,
+    UserIdParam,
+} from '@/schema/user.schema';
 
 const route = new Hono<AppEnv>();
 const tags = ['User'];
+
+route.patch(
+    '/me/profile',
+    AuthMiddleware,
+    describeRoute({
+        summary: 'Update current profile',
+        tags,
+        description: 'Update the authenticated user profile name and nickname.',
+    }),
+    validator('json', UpdateProfileDto),
+    async (c) => {
+        const db = await c.get('db');
+        const user = c.get('user');
+        const data = await c.req.valid('json');
+        const response = await updateCurrentUserProfile(
+            db,
+            Number(user.sub),
+            data
+        );
+        return c.json(response);
+    }
+);
 
 route.get(
     '/',

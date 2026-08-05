@@ -14,7 +14,7 @@ import {
 import type { ReportItem, AdminCommentItem, AdminUserItem } from '../api/admin';
 import { deletePostApi, updatePostStatusApi, getManagerPostsApi, getAdminPostsApi } from '../api/post';
 import type { Post } from '../types/post';
-import { registerApi, forgotPasswordApi, requestEmailChangeApi } from '../api/auth';
+import { registerApi, forgotPasswordApi, requestEmailChangeApi, updateProfileApi } from '../api/auth';
 import { Button } from '../components/ui/button';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import {
@@ -465,12 +465,13 @@ export const Dashboard: React.FC = () => {
     if (user) {
       setIsSavingProfile(true);
       try {
-        const updated = {
-          ...user,
-          name: editName,
-          nickName: editNickname || null,
-        };
-        localStorage.setItem('user', JSON.stringify(updated));
+        const response = await updateProfileApi({
+          name: editName.trim(),
+          nickName: editNickname.trim() ? editNickname.trim() : null,
+        });
+        localStorage.setItem('user', JSON.stringify(response.user));
+        setEditName(response.user.name || '');
+        setEditNickname(response.user.nickName || '');
         
         toast({
           title: 'Profile Updated',
